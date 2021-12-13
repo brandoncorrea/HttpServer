@@ -4,10 +4,7 @@ import httpServer.HttpMethod;
 import httpServer.HttpRequest;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.Socket;
 
 public class HttpRequestTest {
 
@@ -17,7 +14,7 @@ public class HttpRequestTest {
             private int index = 0;
 
             @Override
-            public int read() throws IOException {
+            public int read() {
                 if (index >= bytes.length) return -1;
                 return bytes[index++];
             }
