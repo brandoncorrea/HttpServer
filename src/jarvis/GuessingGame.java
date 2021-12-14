@@ -9,6 +9,7 @@ public class GuessingGame {
     public final int guessLimit;
     private int guesses = 0;
     private boolean win = false;
+    private int lastResult = 0;
 
     public GuessingGame() {
         this(1, 100, 7);
@@ -40,10 +41,12 @@ public class GuessingGame {
         if (gameOver()) return result;
         guesses++;
         if (result == 0) win = true;
+        lastResult = result;
         return result;
     }
 
     public int guesses() { return guesses; }
     public boolean gameOver() { return win || guesses >= guessLimit; }
     public boolean won() { return win; }
+    public int lastResult() { return lastResult; }
 }

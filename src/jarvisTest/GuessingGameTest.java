@@ -103,4 +103,18 @@ public class GuessingGameTest {
         Assert.assertEquals(4, game.guesses());
         Assert.assertFalse(game.won());
     }
+
+    @Test
+    public void storesLastGuessResult() {
+        GuessingGame game = new GuessingGame();
+        Assert.assertEquals(0, game.lastResult());
+        game.guess(game.answer + 1);
+        Assert.assertEquals(1, game.lastResult());
+        game.guess(game.answer - 1);
+        Assert.assertEquals(-1, game.lastResult());
+        game.guess(game.answer);
+        Assert.assertEquals(0, game.lastResult());
+        game.guess(game.answer + 1);
+        Assert.assertEquals(0, game.lastResult());
+    }
 }
