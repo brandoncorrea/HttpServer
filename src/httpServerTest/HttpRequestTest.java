@@ -22,33 +22,59 @@ public class HttpRequestTest {
     }
 
     @Test
-    public void newHttpRequestWithMissingHeaderInfo() {
+    public void newHttpRequestUsingStringContent() {
+        HttpRequest req = new HttpRequest("");
+        Assert.assertNull(req.protocol);
+        Assert.assertNull(req.method);
+        Assert.assertNull(req.uri);
+        Assert.assertEquals(0, req.body.length);
+        Assert.assertTrue(req.headers.isEmpty());
+
+        req = new HttpRequest("GET");
+        Assert.assertEquals(HttpMethod.GET, req.method);
+        req = new HttpRequest("GET /");
+        Assert.assertEquals(HttpMethod.GET, req.method);
+        Assert.assertEquals("/", req.uri);
+        req = new HttpRequest("GET / HTTP/1.1");
+        Assert.assertEquals(HttpMethod.GET, req.method);
+        Assert.assertEquals("/", req.uri);
+        Assert.assertEquals("HTTP/1.1", req.protocol);
+
+        req = new HttpRequest("POST /hello HTTP/1.1\r\nContent-Type: application/json");
+        Assert.assertEquals(HttpMethod.POST, req.method);
+        Assert.assertEquals("/hello", req.uri);
+        Assert.assertEquals("HTTP/1.1", req.protocol);
+        Assert.assertEquals("application/json", req.headers.get("Content-Type"));
+
+        req = new HttpRequest("GET / HTTP/1.1\r\nContent-Type: application/json\r\n\r\nsome json\r\ncontent\r\nlast line");
+        Assert.assertEquals(HttpMethod.GET, req.method);
+        Assert.assertEquals("/", req.uri);
+        Assert.assertEquals("HTTP/1.1", req.protocol);
+        Assert.assertEquals("application/json", req.headers.get("Content-Type"));
+        Assert.assertEquals("some json", req.body[0]);
+        Assert.assertEquals("content", req.body[1]);
+        Assert.assertEquals("last line", req.body[2]);
+    }
+
+    @Test
+    public void newHttpRequestWithMissingStatusInfo() {
         InputStream stream = newInputStream("");
         HttpRequest request = new HttpRequest(stream);
         Assert.assertNull(request.method);
         Assert.assertNull(request.uri);
         Assert.assertNull(request.protocol);
-        Assert.assertNull(request.userAgent);
-        Assert.assertNull(request.host);
-        Assert.assertNull(request.acceptLanguage);
 
         stream = newInputStream("GET");
         request = new HttpRequest(stream);
         Assert.assertEquals(HttpMethod.GET, request.method);
         Assert.assertNull(request.uri);
         Assert.assertNull(request.protocol);
-        Assert.assertNull(request.userAgent);
-        Assert.assertNull(request.host);
-        Assert.assertNull(request.acceptLanguage);
 
         stream = newInputStream("GET /hellos");
         request = new HttpRequest(stream);
         Assert.assertEquals(HttpMethod.GET, request.method);
         Assert.assertEquals("/hellos", request.uri);
         Assert.assertNull(request.protocol);
-        Assert.assertNull(request.userAgent);
-        Assert.assertNull(request.host);
-        Assert.assertNull(request.acceptLanguage);
     }
 
     @Test
@@ -62,20 +88,17 @@ public class HttpRequestTest {
 
     @Test
     public void newHttpRequest() {
-        String[][] headers = {
+        String[][] statuses = {
                 {"GET", "/hello.txt", "HTTP/1.1"},
                 {"POST", "/Heyo/goodbye.pdf", "HTTP/2.0"}
         };
 
-        for (String[] header : headers) {
-            InputStream stream = newInputStream(header[0] + " " + header[1] + " " + header[2]);
+        for (String[] status : statuses) {
+            InputStream stream = newInputStream(status[0] + " " + status[1] + " " + status[2]);
             HttpRequest request = new HttpRequest(stream);
-            Assert.assertEquals(HttpMethod.valueOf(header[0]), request.method);
-            Assert.assertEquals(header[1], request.uri);
-            Assert.assertEquals(header[2], request.protocol);
-            Assert.assertNull(request.userAgent);
-            Assert.assertNull(request.host);
-            Assert.assertNull(request.acceptLanguage);
+            Assert.assertEquals(HttpMethod.valueOf(status[0]), request.method);
+            Assert.assertEquals(status[1], request.uri);
+            Assert.assertEquals(status[2], request.protocol);
         }
     }
 
@@ -86,16 +109,14 @@ public class HttpRequestTest {
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Safari/605.1.15"
         };
 
-        String header = "GET / HTTP/1.1\r\n";
+        String status = "GET / HTTP/1.1\r\n";
         for (String agent : agents) {
-            InputStream stream = newInputStream(header + "User-Agent: " + agent);
+            InputStream stream = newInputStream(status + "User-Agent: " + agent);
             HttpRequest request = new HttpRequest(stream);
-            Assert.assertEquals(HttpMethod.valueOf("GET"), request.method);
+            Assert.assertEquals(HttpMethod.GET, request.method);
             Assert.assertEquals("/", request.uri);
             Assert.assertEquals("HTTP/1.1", request.protocol);
-            Assert.assertEquals(agent, request.userAgent);
-            Assert.assertNull(request.host);
-            Assert.assertNull(request.acceptLanguage);
+            Assert.assertEquals(agent, request.headers.get("User-Agent"));
         }
     }
 
@@ -106,16 +127,14 @@ public class HttpRequestTest {
                 "google.com"
         };
 
-        String header = "GET / HTTP/1.1\r\n";
+        String status = "GET / HTTP/1.1\r\n";
         for (String host : hosts) {
-            InputStream stream = newInputStream(header + "Host: " + host);
+            InputStream stream = newInputStream(status + "Host: " + host);
             HttpRequest request = new HttpRequest(stream);
             Assert.assertEquals(HttpMethod.valueOf("GET"), request.method);
             Assert.assertEquals("/", request.uri);
             Assert.assertEquals("HTTP/1.1", request.protocol);
-            Assert.assertEquals(host, request.host);
-            Assert.assertNull(request.userAgent);
-            Assert.assertNull(request.acceptLanguage);
+            Assert.assertEquals(host, request.headers.get("Host"));
         }
     }
 
@@ -127,16 +146,31 @@ public class HttpRequestTest {
                 "wookie"
         };
 
-        String header = "GET / HTTP/1.1\r\n";
+        String status = "GET / HTTP/1.1\r\n";
         for (String lang : langs) {
-            InputStream stream = newInputStream(header + "Accept-Language: " + lang);
+            InputStream stream = newInputStream(status + "Accept-Language: " + lang);
             HttpRequest request = new HttpRequest(stream);
             Assert.assertEquals(HttpMethod.valueOf("GET"), request.method);
             Assert.assertEquals("/", request.uri);
             Assert.assertEquals("HTTP/1.1", request.protocol);
-            Assert.assertNull(request.host);
-            Assert.assertNull(request.userAgent);
-            Assert.assertEquals(lang, request.acceptLanguage);
+            Assert.assertEquals(lang, request.headers.get("Accept-Language"));
         }
+    }
+
+    @Test
+    public void requestParsesBodyLines() {
+        String content = "GET / HTTP/1.1\r\n\r\nnumber=1";
+        HttpRequest req = new HttpRequest(newInputStream(content));
+        Assert.assertEquals("number=1", req.body[0]);
+
+        content = "GET / HTTP/1.1\r\n\r\nnumber=1\r\nchipotle";
+        req = new HttpRequest(newInputStream(content));
+        Assert.assertEquals("number=1", req.body[0]);
+        Assert.assertEquals("chipotle", req.body[1]);
+
+        content = "GET / HTTP/1.1\r\n\r\nchipotle\r\nnumber=1";
+        req = new HttpRequest(newInputStream(content));
+        Assert.assertEquals("chipotle", req.body[0]);
+        Assert.assertEquals("number=1", req.body[1]);
     }
 }
