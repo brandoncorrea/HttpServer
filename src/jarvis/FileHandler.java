@@ -7,10 +7,10 @@ import httpServer.HttpStatusCode;
 
 import java.io.IOException;
 
-public class HelloHandler implements ApiHandler {
+public class FileHandler implements ApiHandler {
     private final String filePath;
 
-    public HelloHandler(String filePath) { this.filePath = filePath; }
+    public FileHandler(String filePath) { this.filePath = filePath; }
 
     public HttpResponse respond(HttpRequest request) {
         try {
