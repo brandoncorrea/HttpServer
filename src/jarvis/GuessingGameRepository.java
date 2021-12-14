@@ -13,6 +13,8 @@ public class GuessingGameRepository {
     }
 
     public GuessingGame findBySessionId(String sessionId) {
-        return store.get(sessionId);
+        GuessingGame game = store.get(sessionId);
+        if (game != null) return game;
+        return newGame(sessionId);
     }
 }

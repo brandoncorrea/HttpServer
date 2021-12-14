@@ -35,4 +35,16 @@ public class GuessingGameRepositoryTest {
         game1.guess(3);
         Assert.assertEquals(1, repo.findBySessionId("123").guesses());
     }
+
+    @Test
+    public void findByIdCreatesGameIfNotFound() {
+        GuessingGameRepository repo = new GuessingGameRepository();
+        GuessingGame sessionGame = repo.findBySessionId("123");
+        GuessingGame newGame = new GuessingGame();
+        Assert.assertEquals(newGame.min, sessionGame.min);
+        Assert.assertEquals(newGame.max, sessionGame.max);
+        Assert.assertEquals(newGame.guessLimit, sessionGame.guessLimit);
+        Assert.assertEquals(0, sessionGame.guesses());
+
+    }
 }
