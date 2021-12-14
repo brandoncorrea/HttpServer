@@ -5,6 +5,8 @@ import httpServer.HttpRequest;
 import httpServer.HttpResponse;
 import httpServer.HttpStatusCode;
 
+import java.io.IOException;
+
 public class NotFoundHandler implements ApiHandler {
     private final String filePath;
 
@@ -19,7 +21,7 @@ public class NotFoundHandler implements ApiHandler {
                     FileHelper.readFile(filePath));
             res.headers.put("Content-Type", "text/html");
             return res;
-        } catch (Exception ex) {
+        } catch (IOException ex) {
             return new HttpResponse(HttpStatusCode.NotFound, "404 - Not Found");
         }
     }
