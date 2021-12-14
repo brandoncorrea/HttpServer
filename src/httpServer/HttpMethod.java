@@ -1,5 +1,6 @@
 package httpServer;
 
 public enum HttpMethod {
-    GET
+    GET,
+    POST
 }
