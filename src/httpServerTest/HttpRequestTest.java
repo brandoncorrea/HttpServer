@@ -159,8 +159,12 @@ public class HttpRequestTest {
 
     @Test
     public void requestParsesBodyLines() {
-        String content = "GET / HTTP/1.1\r\n\r\nnumber=1";
+        String content = "GET / HTTP/1.1\r\n";
         HttpRequest req = new HttpRequest(newInputStream(content));
+        Assert.assertEquals(0, req.body.length);
+
+        content = "GET / HTTP/1.1\r\n\r\nnumber=1";
+        req = new HttpRequest(newInputStream(content));
         Assert.assertEquals("number=1", req.body[0]);
 
         content = "GET / HTTP/1.1\r\n\r\nnumber=1\r\nchipotle";
