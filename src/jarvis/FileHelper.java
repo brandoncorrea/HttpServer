@@ -3,9 +3,9 @@ package jarvis;
 import httpServer.HttpResponse;
 import httpServer.HttpStatusCode;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.net.URLConnection;
+import java.nio.file.Files;
 
 public class FileHelper {
     private FileHelper() { }
@@ -15,8 +15,12 @@ public class FileHelper {
     }
 
     public static HttpResponse fileResponse(int statusCode, String path) throws IOException {
+        InputStream in = new BufferedInputStream(new FileInputStream(path));
         HttpResponse res = new HttpResponse(statusCode, FileHelper.readFile(path));
-        res.headers.put("Content-Type", "text/html");
+        String contentType = URLConnection.guessContentTypeFromStream(in);
+        if (contentType == null)
+            contentType = "text/plain";
+        res.headers.put("Content-Type", contentType);
         return res;
     }
 

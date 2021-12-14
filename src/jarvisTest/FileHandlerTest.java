@@ -29,6 +29,16 @@ public class FileHandlerTest {
     }
 
     @Test
+    public void loadsNonHtmlFile() throws IOException {
+        String path = "HttpServer.iml";
+        ApiHandler handler = new FileHandler(path);
+        HttpResponse res = handler.respond(null);
+        Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
+        Assert.assertEquals(FileHelper.readFile(path), res.content);
+        Assert.assertEquals("application/xml", res.headers.get("Content-Type"));
+    }
+
+    @Test
     public void respondFailsToReadFile() {
         ApiHandler handler = new FileHandler("not/a/file.html");
         HttpResponse res = handler.respond(null);
