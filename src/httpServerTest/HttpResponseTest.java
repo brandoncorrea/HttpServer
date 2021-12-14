@@ -14,8 +14,8 @@ public class HttpResponseTest {
         for (int code : statusCodes) {
             HttpResponse res = new HttpResponse(code);
             Assert.assertEquals(code, res.statusCode);
-            Assert.assertTrue(res.headers.isEmpty());
-        };
+            Assert.assertNotNull(res.headers.get("Date"));
+        }
     }
 
     @Test
@@ -25,6 +25,7 @@ public class HttpResponseTest {
         Assert.assertEquals("Some Text", res.content);
         Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
         Assert.assertEquals("9", res.headers.get("Content-Length"));
+        Assert.assertNotNull(res.headers.get("Date"));
 
         res = new HttpResponse(500, "An error message");
         Assert.assertEquals(500, res.statusCode);
@@ -43,6 +44,7 @@ public class HttpResponseTest {
         Assert.assertEquals(200, res.statusCode);
         Assert.assertNull(res.content);
         Assert.assertEquals("text/html", res.headers.get("Content-Type"));
+        Assert.assertNotNull(res.headers.get("Date"));
 
         headers.put("Content-Type", "application/json");
         res = new HttpResponse(300, headers);
@@ -60,6 +62,10 @@ public class HttpResponseTest {
         Assert.assertNull(res.content);
         Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
         Assert.assertEquals("bytes", res.headers.get("Accept-Ranges"));
+
+        headers.put("Date", "2021-11-13T00:01:02.123");
+        res = new HttpResponse(200, headers);
+        Assert.assertEquals("2021-11-13T00:01:02.123", res.headers.get("Date"));
     }
 
     @Test
@@ -70,6 +76,7 @@ public class HttpResponseTest {
         Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
         Assert.assertEquals("17", res.headers.get("Content-Length"));
         Assert.assertEquals("Some content here", res.content);
+        Assert.assertNotNull(res.headers.get("Date"));
 
         res = new HttpResponse(300, headers, "Blah blah blah");
         Assert.assertEquals(300, res.statusCode);
@@ -89,5 +96,9 @@ public class HttpResponseTest {
         headers.put("Content-Type", "application/json");
         res = new HttpResponse(200, headers, "json content");
         Assert.assertEquals("application/json", res.headers.get("Content-Type"));
+
+        headers.put("Date", "2022-12-31T23:59:59.999");
+        res = new HttpResponse(200, headers);
+        Assert.assertEquals("2022-12-31T23:59:59.999", res.headers.get("Date"));
     }
 }
