@@ -1,9 +1,9 @@
 package httpServer;
 
-
 import java.io.*;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 public class HttpRequest {
@@ -14,80 +14,55 @@ public class HttpRequest {
     public final String[] body;
 
     public HttpRequest(String content) {
-        String[] lines = content.split("\\r\\n");
-        if (lines.length > 0) {
-            Map<String, String> status = parseStatusLine(lines[0]);
-            method = parseHttpMethod(status.get("Method"));
-            uri = status.get("URI");
-            protocol = status.get("Protocol");
-        }
-        else {
-            method = null;
-            uri = null;
-            protocol = null;
-        }
-
-        int i = 1;
-        while (i < lines.length && !lines[i].isEmpty()) {
-            String[] pair = lines[i++].split(":\\s+");
-            headers.put(pair[0], pair[1]);
-        }
-
-        i++;
-        if (i < lines.length)
-            body = Arrays.copyOfRange(lines, i, lines.length);
-        else
-            body = new String[0];
-    }
-
-    public HttpRequest(InputStream stream) {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-        Map<String, String> status = tryParseStatusLine(reader);
+        Iterator<String> lines = Arrays.stream(content.split("\\r\\n")).iterator();
+        Map<String, String> status = tryParseStatusLine(lines);
         method = parseHttpMethod(status.get("Method"));
         uri = status.get("URI");
         protocol = status.get("Protocol");
-        tryParseHeaders(reader);
-        body = tryParseBody(reader);
+        readHeader(lines);
+        body = readBody(lines);
     }
 
-    private Map<String, String> tryParseStatusLine(BufferedReader reader) {
-        try {
-            return parseStatusLine(reader.readLine());
-        } catch(Exception ignored) {
-            return new HashMap<>();
-        }
+    public HttpRequest(InputStream stream) {
+        Iterator<String> lines = new BufferedReader(new InputStreamReader(stream)).lines().iterator();
+        Map<String, String> status = tryParseStatusLine(lines);
+        method = parseHttpMethod(status.get("Method"));
+        uri = status.get("URI");
+        protocol = status.get("Protocol");
+        readHeader(lines);
+        body = readBody(lines);
     }
 
-    private Map<String, String> parseStatusLine(String status) {
+    private Map<String, String> tryParseStatusLine(Iterator<String> lines) {
         Map<String, String> data = new HashMap<>();
-        String[] parts = status.split("\\s+");
-        if (parts.length > 0) data.put("Method", parts[0]);
-        if (parts.length > 1) data.put("URI", parts[1]);
-        if (parts.length > 2) data.put("Protocol", parts[2]);
+        try {
+            String[] parts = lines.next().split("\\s+");
+            if (parts.length > 0) data.put("Method", parts[0]);
+            if (parts.length > 1) data.put("URI", parts[1]);
+            if (parts.length > 2) data.put("Protocol", parts[2]);
+            return data;
+        } catch(Exception ignored) { }
         return data;
     }
 
-    private void tryParseHeaders(BufferedReader reader) {
-        try {
-            String s;
-            while ((s = reader.readLine()) != null) {
-                if (s.isEmpty()) return;
-                String[] pair = s.split(":\\s+");
-                headers.put(pair[0], pair[1]);
-            }
-        } catch(IOException ignored) { }
+    private void readHeader(Iterator<String> lines) {
+        while (lines.hasNext()) {
+            String line = lines.next();
+            if (line.isEmpty()) break;
+            String[] pair = line.split(":\\s+");
+            headers.put(pair[0], pair[1]);
+        }
     }
 
-    private String[] tryParseBody(BufferedReader reader) {
-        try {
-            StringBuilder content = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null)
-                content.append(line).append("\n");
-            return content.toString().split("\\n");
-        } catch (IOException ignored) {
+    private String[] readBody(Iterator<String> lines) {
+        StringBuilder remaining = new StringBuilder();
+        while (lines.hasNext())
+            remaining.append(lines.next()).append("\n");
+        String content = remaining.toString();
+        if (content.isEmpty())
             return new String[0];
-        }
+        else
+            return content.split("\\n");
     }
 
     private HttpMethod parseHttpMethod(String method) {
