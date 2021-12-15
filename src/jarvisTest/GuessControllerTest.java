@@ -93,4 +93,20 @@ public class GuessControllerTest {
         Assert.assertEquals(HttpStatusCode.InternalServerError, res.statusCode);
         Assert.assertEquals("Failed to load resource", res.content);
     }
+
+    @Test
+    public void postGuessesNumberForGame() {
+        GuessingGameRepository repo = new GuessingGameRepository();
+        GuessController controller = new GuessController("src/resources/guess.html", repo);
+        GuessingGame game = repo.newGame("123");
+
+        for (int guess : new int[] { game.answer + 1, game.answer - 1}) {
+            HttpRequest req = new HttpRequest("POST / HTTP/1.1\r\n\r\nnumber=" + guess);
+            req.headers.put("Cookie", "session_id=123");
+            HttpResponse res = controller.post(req);
+            Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
+            Assert.assertTrue(res.content.contains("Guess a number between 1 and 100"));
+            Assert.assertTrue(res.content.contains((game.guessLimit - game.guesses()) + " tries left"));
+        }
+    }
 }

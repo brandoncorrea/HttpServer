@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.UUID;
 
-public class GuessController implements GetController {
+public class GuessController implements GetController, PostController {
     private final String filePath;
     private final GuessingGameRepository repo;
 
@@ -16,6 +16,36 @@ public class GuessController implements GetController {
     }
 
     public HttpResponse get(HttpRequest request) {
+        return renderPage(request);
+    }
+
+    public HttpResponse post(HttpRequest request) {
+        tryGuessNumber(request);
+        return renderPage(request);
+    }
+
+    private void tryGuessNumber(HttpRequest request) {
+        try {
+            guessNumber(request);
+        } catch (Exception ignored) { }
+    }
+
+    private void guessNumber(HttpRequest request) {
+        String sessionId = getSessionId(request);
+        GuessingGame game = repo.findBySessionId(sessionId);
+        String number = getNumberParameter(request);
+        int guess = Integer.parseInt(number.substring(7));
+        game.guess(guess);
+    }
+
+    private String getNumberParameter(HttpRequest request) {
+        for (int i = 0; i < request.body.length; i++)
+            if (request.body[i].startsWith("number="))
+                return request.body[i];
+        return null;
+    }
+
+    private HttpResponse renderPage(HttpRequest request) {
         try {
             return constructResponse(request);
         } catch (Exception ignored) {
@@ -64,11 +94,13 @@ public class GuessController implements GetController {
     }
 
     private String getSessionId(HttpRequest request) {
-        String cookieHeader = request.headers.get("Cookie");
-        if (cookieHeader != null)
-            for (String cookie : cookieHeader.split(";"))
-                if (Objects.equals(cookie.substring(0, 11), "session_id="))
-                    return cookie.substring(11);
+        try {
+            String cookieHeader = request.headers.get("Cookie");
+            if (cookieHeader != null)
+                for (String cookie : cookieHeader.split(";"))
+                    if (Objects.equals(cookie.substring(0, 11), "session_id="))
+                        return cookie.substring(11);
+        } catch (Exception ignored) { }
         return UUID.randomUUID().toString();
     }
 }
