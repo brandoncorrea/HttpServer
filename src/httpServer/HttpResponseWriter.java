@@ -26,7 +26,7 @@ public class HttpResponseWriter {
 
     private void writeContent(OutputStream out, HttpResponse response) throws IOException {
         if (response.content != null)
-            writeFormat(out, "\r\n%s", response.content);
+            writeFormat(out, "\r\n%s\r\n", response.content);
     }
 
     private void writeFormat(OutputStream out, String format, Object... args) throws IOException {

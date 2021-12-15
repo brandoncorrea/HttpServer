@@ -77,13 +77,19 @@ public class HttpRequest {
 
     private String[] readBody(BufferedReader reader) {
         try {
-            StringBuilder content = new StringBuilder();
-            while(reader.ready())
-                content.append(reader.readLine()).append("\n");
-            if (content.length() != 0)
-                return content.toString().split("\\n");
+            int length = getContentLength();
+            if (length == 0) return new String[0];
+            char[] content = new char[length];
+            reader.read(content);
+            return String.valueOf(content).split("\\r\\n");
         } catch (IOException ignored) { }
         return new String[0];
+    }
+
+    private int getContentLength() {
+        String contentLength = headers.get("Content-Length");
+        if (contentLength == null) return 0;
+        return Integer.parseInt(contentLength);
     }
 
     private HttpMethod parseHttpMethod(String method) {

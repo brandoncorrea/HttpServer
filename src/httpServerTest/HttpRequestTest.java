@@ -163,16 +163,16 @@ public class HttpRequestTest {
         HttpRequest req = new HttpRequest(newInputStream(content));
         Assert.assertEquals(0, req.body.length);
 
-        content = "GET / HTTP/1.1\r\n\r\nnumber=1";
+        content = "GET / HTTP/1.1\r\nContent-Length: 8\r\n\r\nnumber=1";
         req = new HttpRequest(newInputStream(content));
         Assert.assertEquals("number=1", req.body[0]);
 
-        content = "GET / HTTP/1.1\r\n\r\nnumber=1\r\nchipotle";
+        content = "GET / HTTP/1.1\r\nContent-Length: 18\r\n\r\nnumber=1\r\nchipotle";
         req = new HttpRequest(newInputStream(content));
         Assert.assertEquals("number=1", req.body[0]);
         Assert.assertEquals("chipotle", req.body[1]);
 
-        content = "GET / HTTP/1.1\r\n\r\nchipotle\r\nnumber=1";
+        content = "GET / HTTP/1.1\r\nContent-Length: 18\r\n\r\nchipotle\r\nnumber=1";
         req = new HttpRequest(newInputStream(content));
         Assert.assertEquals("chipotle", req.body[0]);
         Assert.assertEquals("number=1", req.body[1]);
