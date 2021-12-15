@@ -18,7 +18,7 @@ public class Server {
     public void listen() throws IOException {
         ServerSocket server = new ServerSocket(port);
         while (true)
-            executioner.submit(new SocketWorker(server.accept(), router));
+            executioner.submit(new SocketWorker(server.accept(), root, router));
     }
 
     public boolean shutdown() {
