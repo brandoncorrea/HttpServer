@@ -43,7 +43,7 @@ public class HttpResponseWriterTest {
                 "Content-Length: 18\r\n" +
                 "Date: Another dummy date\r\n" +
                 "Content-Type: text/plain\r\n\r\n" +
-                "404 Page Not Found\r\n");
+                "404 Page Not Found");
 
         res = new HttpResponse(HttpStatusCode.InternalServerError, "Error Message Here");
         res.headers.put("Date", "Another dummy date");
@@ -51,7 +51,14 @@ public class HttpResponseWriterTest {
                 "Content-Length: 18\r\n" +
                 "Date: Another dummy date\r\n" +
                 "Content-Type: text/plain\r\n\r\n" +
-                "Error Message Here\r\n");
+                "Error Message Here");
+
+        res = new HttpResponse(HttpStatusCode.OK, "Hello!".getBytes());
+        res.headers.put("Date", "fake date");
+        testWriter(res, "HTTP/1.1 200 OK\r\n" +
+                "Content-Length: 6\r\n" +
+                "Date: fake date\r\n\r\n" +
+                "Hello!");
     }
 
     private void testWriter(HttpResponse response, String expected) throws IOException {
