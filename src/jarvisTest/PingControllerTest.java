@@ -1,24 +1,23 @@
 package jarvisTest;
 
-import httpServer.ApiHandler;
 import httpServer.HttpResponse;
 import httpServer.HttpStatusCode;
-import jarvis.PingHandler;
+import jarvis.PingController;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class PingHandlerTest {
+public class PingControllerTest {
     @Test
     public void newPingHandler() {
         String[] patterns = {"HH:mm:ss", "yyyy-MM-dd HH:mm:ss"};
         for (String pattern : patterns) {
-            ApiHandler handler = new PingHandler(pattern);
+            PingController handler = new PingController(pattern);
 
             long before = System.currentTimeMillis();
-            HttpResponse res = handler.respond(null);
+            HttpResponse res = handler.get(null);
             long after = System.currentTimeMillis();
             long diff = after - before;
             Assert.assertTrue(1000 < diff && diff < 1100);

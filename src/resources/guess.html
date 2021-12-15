@@ -5,8 +5,9 @@
 </head>
 <body>
     <h1>Guessing Game!</h1>
-    <p>Guess a number 1 - 100</p>
-    <form action="/guess" method="post">
+    <p>{{instructions}}</p>
+    <p>{{status}}</p>
+    <form action="/guess" method="POST">
         <label for="number">Number: </label>
         <input type="text" id="number" name="number" value="" />
         <input type="submit" value="Submit" />

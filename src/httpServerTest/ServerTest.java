@@ -1,6 +1,5 @@
 package httpServerTest;
 
-import com.sun.tools.internal.ws.wsdl.document.Output;
 import httpServer.*;
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,7 +30,7 @@ public class ServerTest {
         Assert.assertNotNull(res.headers.get("Date"));
         Assert.assertEquals(HttpStatusCode.NotFound, res.statusCode);
 
-        server.addRoute("/hello", HttpMethod.GET, request -> new HttpResponse(HttpStatusCode.OK, "Hello Content"));
+        server.addController("/hello", (GetController) r -> new HttpResponse(HttpStatusCode.OK, "Hello Content"));
 
         res = server.route(req);
         Assert.assertNotNull(res.headers.get("Date"));
@@ -41,7 +40,7 @@ public class ServerTest {
         Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
 
         req = newHttpRequest(HttpMethod.GET, "/goodbye");
-        server.addRoute("/goodbye", HttpMethod.GET, request -> new HttpResponse(HttpStatusCode.InternalServerError, "An error message"));
+        server.addController("/goodbye", (GetController) r -> new HttpResponse(HttpStatusCode.InternalServerError, "An error message"));
         res = server.route(req);
         Assert.assertNotNull(res.headers.get("Date"));
         Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
@@ -50,7 +49,7 @@ public class ServerTest {
         Assert.assertEquals(HttpStatusCode.InternalServerError, res.statusCode);
 
         req = newHttpRequest(HttpMethod.GET, "/abcdefg");
-        server.addRoute("*", HttpMethod.GET, request -> new HttpResponse(HttpStatusCode.OK, "Default Route"));
+        server.addController("*", (GetController) r -> new HttpResponse(HttpStatusCode.OK, "Default Route"));
         res = server.route(req);
         Assert.assertNotNull(res.headers.get("Date"));
         Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
@@ -64,7 +63,8 @@ public class ServerTest {
         Assert.assertNull(res.content);
         Assert.assertEquals(HttpStatusCode.MethodNotAllowed, res.statusCode);
 
-        server.addRoute("/postNote", HttpMethod.POST, request -> new HttpResponse(HttpStatusCode.OK, "Completed POST Request"));
+        server.addController("/postNote",
+                (PostController) r -> new HttpResponse(HttpStatusCode.OK, "Completed POST Request"));
         req = newHttpRequest(HttpMethod.POST, "/postNote");
         res = server.route(req);
         Assert.assertNotNull(res.headers.get("Date"));
@@ -73,8 +73,14 @@ public class ServerTest {
         Assert.assertEquals("Completed POST Request", res.content);
         Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
 
-        server.addRoute("/multiPurpose", HttpMethod.POST, r -> new HttpResponse(HttpStatusCode.Accepted, "Multipurpose POST"));
-        server.addRoute("/multiPurpose", HttpMethod.GET, r -> new HttpResponse(HttpStatusCode.OK, "Multipurpose GET"));
+        class multiPurposeController implements PostController, GetController {
+            public HttpResponse get(HttpRequest request)
+            { return new HttpResponse(HttpStatusCode.OK, "Multipurpose GET"); }
+            public HttpResponse post(HttpRequest request)
+            { return new HttpResponse(HttpStatusCode.Accepted, "Multipurpose POST"); }
+        }
+
+        server.addController("/multiPurpose", new multiPurposeController());
         req = newHttpRequest(HttpMethod.POST, "/multiPurpose");
         res = server.route(req);
         Assert.assertEquals("Multipurpose POST", res.content);
@@ -130,7 +136,7 @@ public class ServerTest {
     @Test
     public void processRequestWritesResponseToOutput() throws IOException {
         Server server = new Server(80);
-        server.addRoute("/hello", HttpMethod.GET, r -> new HttpResponse(HttpStatusCode.OK, "Hello!"));
+        server.addController("/hello", (GetController) r -> new HttpResponse(HttpStatusCode.OK, "Hello!"));
         Socket socket = new Socket() {
             private final InputStream in = new ByteArrayInputStream(
                     "GET /hello HTTP/1.1".getBytes());
@@ -152,6 +158,6 @@ public class ServerTest {
         String output = out.toString();
         Assert.assertFalse(socket.isClosed());
         Assert.assertEquals("HTTP/1.1 200 OK\r\n", output.substring(0, 17));
-        Assert.assertEquals("\r\n\r\nHello!", output.substring(output.length() - 10));
+        Assert.assertEquals("\r\n\r\nHello!\r\n", output.substring(output.length() - 12));
     }
 }

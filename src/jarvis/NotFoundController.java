@@ -1,18 +1,15 @@
 package jarvis;
 
-import httpServer.ApiHandler;
-import httpServer.HttpRequest;
-import httpServer.HttpResponse;
-import httpServer.HttpStatusCode;
+import httpServer.*;
 
 import java.io.IOException;
 
-public class NotFoundHandler implements ApiHandler {
+public class NotFoundController implements GetController {
     private final String filePath;
 
-    public NotFoundHandler(String filePath) { this.filePath = filePath; }
+    public NotFoundController(String filePath) { this.filePath = filePath; }
 
-    public HttpResponse respond(HttpRequest request) {
+    public HttpResponse get(HttpRequest request) {
         try {
             return FileHelper.fileResponse(HttpStatusCode.NotFound, filePath);
         } catch (IOException ex) {

@@ -1,16 +1,15 @@
 package jarvisTest;
 
-import httpServer.ApiHandler;
 import httpServer.HttpResponse;
 import httpServer.HttpStatusCode;
 import jarvis.FileHelper;
-import jarvis.FileHandler;
+import jarvis.FileController;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
 
-public class FileHandlerTest {
+public class FileControllerTest {
     @Test
     public void newFileHandler() throws IOException {
         String[] paths = {
@@ -20,8 +19,8 @@ public class FileHandlerTest {
         };
 
         for (String path : paths) {
-            ApiHandler handler = new FileHandler(path);
-            HttpResponse res = handler.respond(null);
+            FileController handler = new FileController(path);
+            HttpResponse res = handler.get(null);
             Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
             Assert.assertEquals(FileHelper.readFile(path), res.content);
             Assert.assertEquals("text/html", res.headers.get("Content-Type"));
@@ -31,8 +30,8 @@ public class FileHandlerTest {
     @Test
     public void loadsNonHtmlFile() throws IOException {
         String path = "HttpServer.iml";
-        ApiHandler handler = new FileHandler(path);
-        HttpResponse res = handler.respond(null);
+        FileController handler = new FileController(path);
+        HttpResponse res = handler.get(null);
         Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
         Assert.assertEquals(FileHelper.readFile(path), res.content);
         Assert.assertEquals("application/xml", res.headers.get("Content-Type"));
@@ -40,8 +39,8 @@ public class FileHandlerTest {
 
     @Test
     public void respondFailsToReadFile() {
-        ApiHandler handler = new FileHandler("not/a/file.html");
-        HttpResponse res = handler.respond(null);
+        FileController handler = new FileController("not/a/file.html");
+        HttpResponse res = handler.get(null);
         Assert.assertEquals(HttpStatusCode.InternalServerError, res.statusCode);
         Assert.assertEquals("An error occurred while retrieving the resource.", res.content);
     }

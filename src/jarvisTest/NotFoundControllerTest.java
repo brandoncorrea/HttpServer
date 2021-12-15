@@ -1,16 +1,15 @@
 package jarvisTest;
 
-import httpServer.ApiHandler;
 import httpServer.HttpResponse;
 import httpServer.HttpStatusCode;
 import jarvis.FileHelper;
-import jarvis.NotFoundHandler;
+import jarvis.NotFoundController;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
 
-public class NotFoundHandlerTest {
+public class NotFoundControllerTest {
 
     @Test
     public void newNotFoundHandler() throws IOException {
@@ -20,8 +19,8 @@ public class NotFoundHandlerTest {
         };
 
         for (String path : paths) {
-            ApiHandler handler = new NotFoundHandler(path);
-            HttpResponse res = handler.respond(null);
+            NotFoundController handler = new NotFoundController(path);
+            HttpResponse res = handler.get(null);
             Assert.assertEquals(HttpStatusCode.NotFound, res.statusCode);
             Assert.assertEquals("text/html", res.headers.get("Content-Type"));
             Assert.assertEquals(FileHelper.readFile(path), res.content);
@@ -30,8 +29,8 @@ public class NotFoundHandlerTest {
 
     @Test
     public void plainTextWhenFileFailsToOpen() {
-        ApiHandler handler = new NotFoundHandler("fake/file/path.html");
-        HttpResponse res = handler.respond(null);
+        NotFoundController handler = new NotFoundController("fake/file/path.html");
+        HttpResponse res = handler.get(null);
         Assert.assertEquals(HttpStatusCode.NotFound, res.statusCode);
         Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
         Assert.assertEquals("404 - Not Found", res.content);

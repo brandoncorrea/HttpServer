@@ -1,18 +1,15 @@
 package jarvis;
 
-import httpServer.ApiHandler;
-import httpServer.HttpRequest;
-import httpServer.HttpResponse;
-import httpServer.HttpStatusCode;
+import httpServer.*;
 
 import java.io.IOException;
 
-public class FileHandler implements ApiHandler {
+public class FileController implements GetController {
     private final String filePath;
 
-    public FileHandler(String filePath) { this.filePath = filePath; }
+    public FileController(String filePath) { this.filePath = filePath; }
 
-    public HttpResponse respond(HttpRequest request) {
+    public HttpResponse get(HttpRequest request) {
         try {
             return FileHelper.fileResponse(filePath);
         } catch (IOException ex) {

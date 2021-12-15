@@ -1,20 +1,17 @@
 package jarvis;
 
-import httpServer.ApiHandler;
-import httpServer.HttpRequest;
-import httpServer.HttpResponse;
-import httpServer.HttpStatusCode;
+import httpServer.*;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public class DirectoryHandler implements ApiHandler {
+public class DirectoryController implements GetController {
     private final String root;
-    public DirectoryHandler(String root) { this.root = root; }
+    public DirectoryController(String root) { this.root = root; }
 
-    public HttpResponse respond(HttpRequest request) {
+    public HttpResponse get(HttpRequest request) {
         String uri = request.uri.replaceAll("[/]+$", "");
         String path = root + uri;
         File file = new File(path);

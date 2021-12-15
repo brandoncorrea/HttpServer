@@ -9,7 +9,7 @@ import java.util.Map;
 public class Server {
     private final HttpResponseWriter httpWriter = new HttpResponseWriter();
     public final int port;
-    private final Map<String, Map<HttpMethod, ApiHandler>> routes = new HashMap<>();
+    private final Map<String, ControllerBase> controllers = new HashMap<>();
 
     public Server(int port) { this.port = port; }
 
@@ -18,9 +18,8 @@ public class Server {
         while (true) processRequest(server.accept());
     }
 
-    public void addRoute(String uri, HttpMethod method, ApiHandler handler) {
-        Map<HttpMethod, ApiHandler> route = routes.computeIfAbsent(uri, k -> new HashMap<>());
-        route.put(method, handler);
+    public void addController(String uri, ControllerBase controller) {
+        controllers.put(uri, controller);
     }
 
     public void processRequest(Socket client) {
@@ -39,12 +38,13 @@ public class Server {
     public HttpResponse route(HttpRequest request) {
         String[] keys = { request.uri, "*" };
         for (String key : keys) {
-            Map<HttpMethod, ApiHandler> route = routes.get(key);
-            if (route == null) continue;
-            ApiHandler handler = route.get(request.method);
-            if (handler == null)
-                return new HttpResponse(HttpStatusCode.MethodNotAllowed);
-            return handler.respond(request);
+            ControllerBase controller = controllers.get(key);
+            if (controller == null) continue;
+            if (request.method == HttpMethod.GET && controller instanceof GetController)
+                return ((GetController)controller).get(request);
+            else if (controller instanceof PostController)
+                return ((PostController)controller).post(request);
+            return new HttpResponse(HttpStatusCode.MethodNotAllowed);
         }
 
         return new HttpResponse(HttpStatusCode.NotFound);
