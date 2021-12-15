@@ -24,6 +24,7 @@ public class Main {
         router.addController("/guess", new GuessController("src/resources/guess.html", gameRepo));
         router.addController("*", new DirectoryController(args.root, "src/resources/index.html"));
         Server server = new Server(args.port, router);
+        Runtime.getRuntime().addShutdownHook(new Thread(server::shutdown));
         server.listen();
     }
 }

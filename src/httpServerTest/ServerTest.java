@@ -10,4 +10,10 @@ public class ServerTest {
         Server server = new Server(80, new HttpRequestRouter());
         Assert.assertEquals(80, server.port);
     }
+
+    @Test
+    public void shutdownResultsInTrue() {
+        Server server = new Server(80, new HttpRequestRouter());
+        Assert.assertTrue(server.shutdown());
+    }
 }
