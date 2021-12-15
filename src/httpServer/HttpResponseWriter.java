@@ -22,11 +22,7 @@ public class HttpResponseWriter {
 
     private void writeHeaders(OutputStream out, Map<String, String> headers) throws IOException {
         for (Map.Entry<String, String> entry : headers.entrySet())
-            writeHeader(out, entry.getKey(), entry.getValue());
-    }
-
-    private void writeHeader(OutputStream out, String name, String value) throws IOException {
-        writeFormat(out, "%s: %s\r\n", name, value);
+            writeFormat(out, "%s: %s\r\n", entry.getKey(), entry.getValue());
     }
 
     private void writeFormat(OutputStream out, String format, Object... args) throws IOException {
