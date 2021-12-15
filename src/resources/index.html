@@ -2,11 +2,24 @@
 <html>
 <head>
     <title>Home</title>
+    <style>
+        body {
+            text-align: center;
+        }
+
+        ul {
+            list-style: none;
+        }
+    </style>
 </head>
 <body>
-    <h1>Hello, world!</h1>
     <ul>
+        <li><a href="/">Home</a></li>
         <li><a href="/hello">Hello</a></li>
+        <li><a href="/guess">Guessing Game</a></li>
+        <li><a href="/ping">Ping</a></li>
     </ul>
+    <h1>Directory Listings</h1>
+    {{listings}}
 </body>
 </html>

@@ -21,7 +21,7 @@ public class Main {
         server.addController("/hello", new FileController("src/resources/hello.html"));
         server.addController("/ping", new PingController("HH:mm:ss"));
         server.addController("/guess", new GuessController("src/resources/guess.html", gameRepo));
-        server.addController("*", new DirectoryController(args.root));
+        server.addController("*", new DirectoryController(args.root, "src/resources/index.html"));
         server.listen();
     }
 }

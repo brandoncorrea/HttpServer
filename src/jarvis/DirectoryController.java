@@ -3,25 +3,35 @@ package jarvis;
 import httpServer.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 public class DirectoryController implements GetController {
     private final String root;
-    public DirectoryController(String root) { this.root = root; }
+    private final String htmlPagePath;
+
+    public DirectoryController(String root, String htmlPage) {
+        this.root = root;
+        this.htmlPagePath = htmlPage;
+    }
 
     public HttpResponse get(HttpRequest request) {
-        String uri = request.uri.replaceAll("[/]+$", "");
-        String path = root + uri;
-        File file = new File(path);
-        if (uri.contains(".."))
-            return new HttpResponse(HttpStatusCode.Forbidden, "Cannot request parent directory");
-        if (!file.exists())
-            return new HttpResponse(HttpStatusCode.NotFound, "Path Not Found");
-        if (new File(path).isDirectory())
-            return buildDirectoryList(uri);
-        return tryRequestFile(path);
+        try {
+            String uri = request.uri.replaceAll("[/]+$", "");
+            String path = root + uri;
+            File file = new File(path);
+            if (uri.contains(".."))
+                return new HttpResponse(HttpStatusCode.Forbidden, "Cannot request parent directory");
+            if (!file.exists())
+                return new HttpResponse(HttpStatusCode.NotFound, "Path Not Found");
+            if (new File(path).isDirectory())
+                return buildDirectoryList(uri);
+            return tryRequestFile(path);
+        } catch (Exception ignored) {
+            return new HttpResponse(HttpStatusCode.InternalServerError, "Failed to load resource");
+        }
     }
 
     private HttpResponse tryRequestFile(String path) {
@@ -32,9 +42,9 @@ public class DirectoryController implements GetController {
         }
     }
 
-    private HttpResponse buildDirectoryList(String uri) {
+    private HttpResponse buildDirectoryList(String uri) throws IOException {
         List<String> paths = getDirectories(uri);
-        HttpResponse res = new HttpResponse(HttpStatusCode.OK, buildHtmlList(uri, paths));
+        HttpResponse res = new HttpResponse(HttpStatusCode.OK, buildHtmlContent(uri, paths));
         res.headers.put("Content-Type", "text/html");
         return res;
     }
@@ -45,7 +55,7 @@ public class DirectoryController implements GetController {
         return paths;
     }
 
-    private String buildHtmlList(String uri, List<String> paths) {
+    private String buildHtmlContent(String uri, List<String> paths) throws IOException {
         StringBuilder builder = new StringBuilder();
         builder.append("<ul><li><a href=\"" + (Objects.equals(uri, "/") ? "" : uri) + "/..\">..</a></li>\r\n");
         for (String path : paths)
@@ -57,6 +67,8 @@ public class DirectoryController implements GetController {
                     .append(path)
                     .append("</a></li>\r\n");
 
-        return builder.append("</ul>\r\n").toString();
+        return FileHelper
+                .readFile(htmlPagePath)
+                .replace("{{listings}}", builder.append("</ul>\r\n").toString());
     }
 }
