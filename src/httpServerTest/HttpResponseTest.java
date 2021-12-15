@@ -4,6 +4,7 @@ import httpServer.HttpResponse;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,6 +16,7 @@ public class HttpResponseTest {
             HttpResponse res = new HttpResponse(code);
             Assert.assertEquals(code, res.statusCode);
             Assert.assertNotNull(res.headers.get("Date"));
+            Assert.assertEquals(0, res.contentBytes.length);
         }
     }
 
@@ -26,12 +28,14 @@ public class HttpResponseTest {
         Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
         Assert.assertEquals("9", res.headers.get("Content-Length"));
         Assert.assertNotNull(res.headers.get("Date"));
+        Assert.assertArrayEquals(res.content.getBytes(), res.contentBytes);
 
         res = new HttpResponse(500, "An error message");
         Assert.assertEquals(500, res.statusCode);
         Assert.assertEquals("An error message", res.content);
         Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
         Assert.assertEquals("16", res.headers.get("Content-Length"));
+        Assert.assertArrayEquals(res.content.getBytes(), res.contentBytes);
     }
 
     @Test
@@ -45,6 +49,7 @@ public class HttpResponseTest {
         Assert.assertNull(res.content);
         Assert.assertEquals("text/html", res.headers.get("Content-Type"));
         Assert.assertNotNull(res.headers.get("Date"));
+        Assert.assertEquals(0, res.contentBytes.length);
 
         headers.put("Content-Type", "application/json");
         res = new HttpResponse(300, headers);
@@ -76,6 +81,7 @@ public class HttpResponseTest {
         Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
         Assert.assertEquals("17", res.headers.get("Content-Length"));
         Assert.assertEquals("Some content here", res.content);
+        Assert.assertArrayEquals(res.content.getBytes(), res.contentBytes);
         Assert.assertNotNull(res.headers.get("Date"));
 
         res = new HttpResponse(300, headers, "Blah blah blah");
@@ -84,6 +90,7 @@ public class HttpResponseTest {
         Assert.assertEquals("14", res.headers.get("Content-Length"));
         Assert.assertNull(res.headers.get("Accept-Ranges"));
         Assert.assertEquals("Blah blah blah", res.content);
+        Assert.assertArrayEquals(res.content.getBytes(), res.contentBytes);
 
         headers.put("Accept-Ranges", "bytes");
         res = new HttpResponse(200, headers, "Blah blah blah");
@@ -100,5 +107,26 @@ public class HttpResponseTest {
         headers.put("Date", "2022-12-31T23:59:59.999");
         res = new HttpResponse(200, headers);
         Assert.assertEquals("2022-12-31T23:59:59.999", res.headers.get("Date"));
+    }
+
+    @Test
+    public void newHttpResponseWithByteArray() {
+        HttpResponse res = new HttpResponse(200, new byte[0]);
+        Assert.assertEquals(200, res.statusCode);
+        Assert.assertNull(res.content);
+        Assert.assertEquals("0", res.headers.get("Content-Length"));
+        Assert.assertNotNull(res.headers.get("Date"));
+        Assert.assertEquals(0, res.contentBytes.length);
+
+        byte[] responseData = {0, 4, 3, 7, 3};
+        res = new HttpResponse(300, responseData);
+        Assert.assertEquals(300, res.statusCode);
+        Assert.assertNull(res.content);
+        Assert.assertEquals("5", res.headers.get("Content-Length"));
+        Assert.assertNotNull(res.headers.get("Date"));
+        Assert.assertArrayEquals(responseData, res.contentBytes);
+
+        responseData[3] = 5;
+        Assert.assertNotEquals(responseData[3], res.contentBytes[3]);
     }
 }

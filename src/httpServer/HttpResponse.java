@@ -1,20 +1,18 @@
 package httpServer;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
 
 public class HttpResponse {
     public final int statusCode;
     public final String content;
+    public final byte[] contentBytes;
     public final Map<String, String> headers;
 
     public HttpResponse(int statusCode) {
         this.statusCode = statusCode;
         content = null;
-
+        contentBytes = new byte[0];
         TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
         headers = new HashMap<String, String>() {{
             put("Date", getFormattedDate());
@@ -24,16 +22,29 @@ public class HttpResponse {
     public HttpResponse(int statusCode, String content) {
         this.statusCode = statusCode;
         this.content = content;
+        contentBytes = content.getBytes();
         headers = new HashMap<String, String>() {{
             put("Date", getFormattedDate());
             put("Content-Type", "text/plain");
-            put("Content-Length", String.valueOf(content.getBytes().length));
+            put("Content-Length", String.valueOf(contentBytes.length));
+        }};
+    }
+
+    public HttpResponse(int statusCode, byte[] bytes) {
+        this.statusCode = statusCode;
+        this.content = null;
+        contentBytes = new byte[bytes.length];
+        System.arraycopy(bytes, 0, contentBytes, 0, bytes.length);
+        this.headers = new HashMap<String, String>(){{
+            put("Content-Length", String.valueOf(contentBytes.length));
+            put("Date", getFormattedDate());
         }};
     }
 
     public HttpResponse(int statusCode, Map<String, String> headers) {
         this.statusCode = statusCode;
         content = null;
+        contentBytes = new byte[0];
         this.headers = new HashMap<String, String>() {{
             put("Date", getFormattedDate());
         }};
@@ -42,13 +53,14 @@ public class HttpResponse {
 
     public HttpResponse(int statusCode, Map<String, String> headers, String content) {
         this.statusCode = statusCode;
+        this.content = content;
+        contentBytes = content.getBytes();
         this.headers = new HashMap<String, String>() {{
             put("Date", getFormattedDate());
             put("Content-Type", "text/plain");
-            put("Content-Length", String.valueOf(content.getBytes().length));
+            put("Content-Length", String.valueOf(contentBytes.length));
         }};
         this.headers.putAll(headers);
-        this.content = content;
     }
 
     private String getFormattedDate() {
