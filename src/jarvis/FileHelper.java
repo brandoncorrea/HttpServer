@@ -5,7 +5,6 @@ import httpServer.HttpStatusCode;
 
 import java.io.*;
 import java.net.URLConnection;
-import java.nio.file.Files;
 
 public class FileHelper {
     private FileHelper() { }
