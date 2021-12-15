@@ -7,19 +7,27 @@
             text-align: center;
         }
 
-        ul {
+        .navbar {
+            padding: 0;
             list-style: none;
+        }
+
+        .listings {
+            display: inline-block;
+            text-align: left;
         }
     </style>
 </head>
 <body>
-    <ul>
+    <ul class="navbar">
         <li><a href="/">Home</a></li>
         <li><a href="/hello">Hello</a></li>
         <li><a href="/guess">Guessing Game</a></li>
         <li><a href="/ping">Ping</a></li>
     </ul>
     <h1>Directory Listings</h1>
-    {{listings}}
+    <div class="listings">
+       {{listings}}
+    </div>
 </body>
 </html>
