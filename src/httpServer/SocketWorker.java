@@ -7,15 +7,13 @@ import java.net.Socket;
 
 public class SocketWorker implements Runnable {
     private final Socket socket;
-    private final HttpResponseWriter writer;
+    private final HttpResponseWriter writer = new HttpResponseWriter();
     private final HttpRequestRouter router;
 
     public SocketWorker(Socket socket,
-                        HttpRequestRouter router,
-                        HttpResponseWriter writer) {
+                        HttpRequestRouter router) {
         this.socket = socket;
         this.router = router;
-        this.writer = writer;
     }
 
     public void run() {
