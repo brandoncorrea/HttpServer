@@ -1,6 +1,7 @@
 package jarvis;
 
 import httpServer.CommandArguments;
+import httpServer.HttpRequestRouter;
 import httpServer.Server;
 
 import java.io.IOException;
@@ -17,11 +18,12 @@ public class Main {
 
     private static void runServer(CommandArguments args) throws IOException {
         GuessingGameRepository gameRepo = new GuessingGameRepository();
-        Server server = new Server(args.port);
-        server.addController("/hello", new FileController("src/resources/hello.html"));
-        server.addController("/ping", new PingController("HH:mm:ss", "src/resources/ping.html"));
-        server.addController("/guess", new GuessController("src/resources/guess.html", gameRepo));
-        server.addController("*", new DirectoryController(args.root, "src/resources/index.html"));
+        HttpRequestRouter router = new HttpRequestRouter();
+        router.addController("/hello", new FileController("src/resources/hello.html"));
+        router.addController("/ping", new PingController("HH:mm:ss", "src/resources/ping.html"));
+        router.addController("/guess", new GuessController("src/resources/guess.html", gameRepo));
+        router.addController("*", new DirectoryController(args.root, "src/resources/index.html"));
+        Server server = new Server(args.port, router);
         server.listen();
     }
 }
