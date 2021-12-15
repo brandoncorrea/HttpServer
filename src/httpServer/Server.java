@@ -13,13 +13,13 @@ public class Server {
 
     public Server(int port) { this.port = port; }
 
+    public void addController(String uri, ControllerBase controller) {
+        controllers.put(uri, controller);
+    }
+
     public void listen() throws IOException {
         ServerSocket server = new ServerSocket(port);
         while (true) processRequest(server.accept());
-    }
-
-    public void addController(String uri, ControllerBase controller) {
-        controllers.put(uri, controller);
     }
 
     public void processRequest(Socket client) {
