@@ -5,11 +5,13 @@ import java.net.ServerSocket;
 
 public class Server {
     public final int port;
+    public final String root;
     private final HttpRequestRouter router;
     private final TimedThreadPoolExecutor executioner = new TimedThreadPoolExecutor(100, 30000);
 
-    public Server(int port, HttpRequestRouter router) {
+    public Server(int port, String root, HttpRequestRouter router) {
         this.port = port;
+        this.root = root;
         this.router = router;
     }
 

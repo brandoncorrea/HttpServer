@@ -23,7 +23,7 @@ public class Main {
         router.addController("/ping", new PingController("HH:mm:ss", "src/resources/ping.html"));
         router.addController("/guess", new GuessController("src/resources/guess.html", gameRepo));
         router.addController("*", new DirectoryController(args.root, "src/resources/index.html"));
-        Server server = new Server(args.port, router);
+        Server server = new Server(args.port, args.root, router);
         Runtime.getRuntime().addShutdownHook(new Thread(server::shutdown));
         server.listen();
     }
