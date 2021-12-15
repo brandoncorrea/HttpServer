@@ -5,6 +5,7 @@ import httpServer.*;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Function;
 
 public class GuessController implements GetController, PostController {
     private final String filePath;
@@ -16,45 +17,56 @@ public class GuessController implements GetController, PostController {
     }
 
     public HttpResponse get(HttpRequest request) {
-        return renderPage(request);
+        return renderPage(getSessionId(request));
     }
 
     public HttpResponse post(HttpRequest request) {
-        tryGuessNumber(request);
-        return renderPage(request);
+        String[] params = parseParameters(request);
+        String sessionId = getSessionId(request);
+        if (newGameClicked(params))
+            repo.newGame(sessionId);
+        else
+            guessNumber(sessionId, params);
+        return renderPage(sessionId);
     }
 
-    private void tryGuessNumber(HttpRequest request) {
+    private String[] parseParameters(HttpRequest request) {
+        if (request.body.length == 0) return new String[0];
+        return request.body[0].split("&");
+    }
+
+    private void guessNumber(String sessionId, String[] params) {
         try {
-            guessNumber(request);
+            GuessingGame game = repo.findBySessionId(sessionId);
+            String number = getNumberParameter(params);
+            game.guess(Integer.parseInt(number));
         } catch (Exception ignored) { }
     }
 
-    private void guessNumber(HttpRequest request) {
-        String sessionId = getSessionId(request);
-        GuessingGame game = repo.findBySessionId(sessionId);
-        String number = getNumberParameter(request);
-        int guess = Integer.parseInt(number.substring(7));
-        game.guess(guess);
+    private boolean newGameClicked(String[] params) {
+        return find(params, s -> s.startsWith("newGame=")) != null;
     }
 
-    private String getNumberParameter(HttpRequest request) {
-        for (int i = 0; i < request.body.length; i++)
-            if (request.body[i].startsWith("number="))
-                return request.body[i];
+    private String getNumberParameter(String[] params) {
+        return find(params, s -> s.startsWith("number=")).substring(7);
+    }
+
+    private String find(String[] items, Function<String, Boolean> predicate) {
+        for (String item : items)
+            if (predicate.apply(item))
+                return item;
         return null;
     }
 
-    private HttpResponse renderPage(HttpRequest request) {
+    private HttpResponse renderPage(String sessionId) {
         try {
-            return constructResponse(request);
+            return constructResponse(sessionId);
         } catch (Exception ignored) {
             return new HttpResponse(HttpStatusCode.InternalServerError, "Failed to load resource");
         }
     }
 
-    private HttpResponse constructResponse(HttpRequest request) throws IOException {
-        String sessionId = getSessionId(request);
+    private HttpResponse constructResponse(String sessionId) throws IOException {
         HttpResponse res = new HttpResponse(HttpStatusCode.OK, constructResponseContent(sessionId));
         res.headers.put("Content-Type", "text/html");
         res.headers.put("Set-Cookie", "session_id=" + sessionId);
@@ -77,29 +89,28 @@ public class GuessController implements GetController, PostController {
     }
 
     private String constructStatusMessage(GuessingGame game) {
-        int guessesLeft = game.guessLimit - game.guesses();
-        String triesMessage;
-        if (guessesLeft == 1)
-            triesMessage = guessesLeft + " try left";
-        else
-            triesMessage = guessesLeft + " tries left";
-
         if (game.guesses() == 0)
-            return triesMessage;
+            return triesMessage(game);
         if (game.lastResult() == 1)
-            return String.format("Too high! %s", triesMessage);
+            return String.format("Too high! %s", triesMessage(game));
         else if (game.lastResult() == -1)
-            return String.format("Too low! %s", triesMessage);
+            return String.format("Too low! %s", triesMessage(game));
         return "";
+    }
+
+    private String triesMessage(GuessingGame game) {
+        int guessesLeft = game.guessLimit - game.guesses();
+        if (guessesLeft == 1)
+            return guessesLeft + " try left";
+        else
+            return guessesLeft + " tries left";
     }
 
     private String getSessionId(HttpRequest request) {
         try {
-            String cookieHeader = request.headers.get("Cookie");
-            if (cookieHeader != null)
-                for (String cookie : cookieHeader.split(";"))
-                    if (Objects.equals(cookie.substring(0, 11), "session_id="))
-                        return cookie.substring(11);
+            for (String cookie : request.headers.get("Cookie").split(";"))
+                if (Objects.equals(cookie.substring(0, 11), "session_id="))
+                    return cookie.substring(11);
         } catch (Exception ignored) { }
         return UUID.randomUUID().toString();
     }

@@ -100,13 +100,32 @@ public class GuessControllerTest {
         GuessController controller = new GuessController("src/resources/guess.html", repo);
         GuessingGame game = repo.newGame("123");
 
+        int guesses = game.guessLimit;
         for (int guess : new int[] { game.answer + 1, game.answer - 1}) {
-            HttpRequest req = new HttpRequest("POST / HTTP/1.1\r\n\r\nnumber=" + guess);
+            HttpRequest req = new HttpRequest("POST / HTTP/1.1\r\n\r\nnumber=" + guess + "&guess=Guess");
             req.headers.put("Cookie", "session_id=123");
             HttpResponse res = controller.post(req);
             Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
             Assert.assertTrue(res.content.contains("Guess a number between 1 and 100"));
-            Assert.assertTrue(res.content.contains((game.guessLimit - game.guesses()) + " tries left"));
+            Assert.assertTrue(res.content.contains("Too high!") || res.content.contains("Too low!"));
+            Assert.assertTrue(res.content.contains(--guesses + " tries left"));
         }
+    }
+
+    @Test
+    public void postCreatesNewGame() {
+        GuessingGameRepository repo = new GuessingGameRepository();
+        GuessController controller = new GuessController("src/resources/guess.html", repo);
+        GuessingGame game = repo.newGame("123");
+
+        HttpRequest req = new HttpRequest("POST / HTTP/1.1\r\n\r\nnumber=3&newGame=New+Game");
+        req.headers.put("Cookie", "session_id=123");
+        HttpResponse res = controller.post(req);
+        Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
+
+        GuessingGame newGame = repo.findBySessionId("123");
+        Assert.assertNotEquals(game.answer, newGame.answer);
+        Assert.assertEquals(0, game.guesses());
+        Assert.assertEquals(0, newGame.guesses());
     }
 }
