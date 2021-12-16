@@ -17,7 +17,7 @@ public class Main {
 
     private static void runServer(CommandArguments args) throws IOException {
         Configuration config = new Configuration("configuration.properties");
-        GuessingGameRepository gameRepo = new GuessingGameRepository();
+        GuessingGameRepository gameRepo = new GuessingGameRepository(config);
         HttpRequestRouter router = new HttpRequestRouter();
         router.addController(config.getString("HelloEndpoint"), new FileController(config.getString("HelloPage")));
         router.addController(config.getString("PingEndpoint"), new PingController(config));
