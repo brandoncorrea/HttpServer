@@ -8,12 +8,12 @@ public class HttpResponse {
     public final String content;
     public final byte[] contentBytes;
     public final Map<String, String> headers;
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
 
     public HttpResponse(int statusCode) {
         this.statusCode = statusCode;
         content = null;
         contentBytes = new byte[0];
-        TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
         headers = new HashMap<String, String>() {{
             put("Date", getFormattedDate());
         }};
@@ -42,29 +42,14 @@ public class HttpResponse {
     }
 
     public HttpResponse(int statusCode, Map<String, String> headers) {
-        this.statusCode = statusCode;
-        content = null;
-        contentBytes = new byte[0];
-        this.headers = new HashMap<String, String>() {{
-            put("Date", getFormattedDate());
-        }};
+        this(statusCode);
         this.headers.putAll(headers);
     }
 
     public HttpResponse(int statusCode, Map<String, String> headers, String content) {
-        this.statusCode = statusCode;
-        this.content = content;
-        contentBytes = content.getBytes();
-        this.headers = new HashMap<String, String>() {{
-            put("Date", getFormattedDate());
-            put("Content-Type", "text/plain");
-            put("Content-Length", String.valueOf(contentBytes.length));
-        }};
+        this(statusCode, content);
         this.headers.putAll(headers);
     }
 
-    private String getFormattedDate() {
-        String format = "EEE, dd MMM yyyy HH:mm:ss z";
-        return new SimpleDateFormat(format).format(new Date());
-    }
+    private String getFormattedDate() { return dateFormat.format(new Date()); }
 }

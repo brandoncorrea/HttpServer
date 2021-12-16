@@ -4,6 +4,7 @@ import httpServer.HttpRequestRouter;
 import httpServer.Server;
 
 import java.io.IOException;
+import java.util.TimeZone;
 
 public class Main {
 
@@ -29,6 +30,7 @@ public class Main {
     }
 
     private static void runServer(Configuration config) throws IOException {
+        TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
         GuessingGameRepository gameRepo = new GuessingGameRepository(config);
         HttpRequestRouter router = new HttpRequestRouter();
         router.addController(config.getString("HelloEndpoint"), new FileController(config.getString("HelloPage")));
