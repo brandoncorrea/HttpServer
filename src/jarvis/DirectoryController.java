@@ -19,6 +19,12 @@ public class DirectoryController implements GetController {
         notFoundPath = notFoundPage;
     }
 
+    public DirectoryController(Configuration config) {
+        root = config.getString("DefaultRootDirectory");
+        htmlPagePath = config.getString("HomePage");
+        notFoundPath = config.getString("NotFoundPage");
+    }
+
     public HttpResponse get(HttpRequest request) {
         try {
             String uri = request.uri

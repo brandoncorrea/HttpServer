@@ -34,7 +34,7 @@ public class Main {
         router.addController(config.getString("HelloEndpoint"), new FileController(config.getString("HelloPage")));
         router.addController(config.getString("PingEndpoint"), new PingController(config));
         router.addController(config.getString("GuessEndpoint"), new GuessController(config, gameRepo));
-        router.addController("*", new DirectoryController(config.getString("DefaultRootDirectory"), config.getString("HomePage"), config.getString("NotFoundPage")));
+        router.addController("*", new DirectoryController(config));
         Server server = new Server(config.getInt("DefaultPort"), router);
         Runtime.getRuntime().addShutdownHook(new Thread(server::shutdown));
         System.out.println("Starting Server on localhost:" + server.port);

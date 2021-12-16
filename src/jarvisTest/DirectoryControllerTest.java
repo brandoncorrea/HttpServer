@@ -2,8 +2,10 @@ package jarvisTest;
 
 import httpServer.*;
 import httpServerTest.HttpStatusCodeTest;
+import jarvis.Configuration;
 import jarvis.DirectoryController;
 import jarvis.FileHelper;
+import jdk.nashorn.internal.runtime.regexp.joni.Config;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -23,21 +25,30 @@ public class DirectoryControllerTest {
     @Test
     public void newDirectoryHandler() {
         String root = System.getProperty("user.dir");
-        DirectoryController handler = new DirectoryController(root, indexPath, notFoundPath);
+        Configuration config = new Configuration();
+        config.set("DefaultRootDirectory", root);
+        config.set("HomePage", indexPath);
+        config.set("NotFoundPage", notFoundPath);
+        DirectoryController[] controllers = {
+                new DirectoryController(root, indexPath, notFoundPath),
+                new DirectoryController(config)
+        };
 
-        HttpRequest req = newHttpRequest("/");
-        HttpResponse res = handler.get(req);
+        for (DirectoryController controller : controllers) {
+            HttpRequest req = newHttpRequest("/");
+            HttpResponse res = controller.get(req);
 
-        String expected = "<ul><li><a href=\"/..\">..</a></li>\r\n";
-        List<String> dirs = Arrays.asList(new File(root).list());
-        dirs.sort(String::compareTo);
-        for (String f : dirs)
-            expected += "\t<li><a href=\"/" + f + "\">" + f + "</a></li>\r\n";
-        expected += "</ul>\r\n";
+            String expected = "<ul><li><a href=\"/..\">..</a></li>\r\n";
+            List<String> dirs = Arrays.asList(new File(root).list());
+            dirs.sort(String::compareTo);
+            for (String f : dirs)
+                expected += "\t<li><a href=\"/" + f + "\">" + f + "</a></li>\r\n";
+            expected += "</ul>\r\n";
 
-        Assert.assertTrue(res.content.contains(expected));
-        Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
-        Assert.assertEquals("text/html", res.headers.get("Content-Type"));
+            Assert.assertTrue(res.content.contains(expected));
+            Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
+            Assert.assertEquals("text/html", res.headers.get("Content-Type"));
+        }
     }
 
     @Test
@@ -90,11 +101,21 @@ public class DirectoryControllerTest {
         String[] paths = {"/not/a/path", "/fake/path.html"};
         byte[] notFoundFile = FileHelper.readFile("src/resources/notFound.html").getBytes();
         for (String path : paths) {
-            DirectoryController handler = new DirectoryController(System.getProperty("user.dir"), indexPath, notFoundPath);
-            HttpRequest req = newHttpRequest(path);
-            HttpResponse res = handler.get(req);
-            Assert.assertEquals(HttpStatusCode.NotFound, res.statusCode);
-            Assert.assertArrayEquals(notFoundFile, res.contentBytes);
+            Configuration config = new Configuration();
+            config.set("DefaultRootDirectory", System.getProperty("user.dir"));
+            config.set("HomePage", indexPath);
+            config.set("NotFoundPage", notFoundPath);
+            DirectoryController[] controllers = {
+                    new DirectoryController(System.getProperty("user.dir"), indexPath, notFoundPath),
+                    new DirectoryController(config)
+            };
+
+            for (DirectoryController controller : controllers) {
+                HttpRequest req = newHttpRequest(path);
+                HttpResponse res = controller.get(req);
+                Assert.assertEquals(HttpStatusCode.NotFound, res.statusCode);
+                Assert.assertArrayEquals(notFoundFile, res.contentBytes);
+            }
         }
     }
 
@@ -126,10 +147,18 @@ public class DirectoryControllerTest {
     @Test
     public void badHtmlFileReturnsServerError() {
         String root = System.getProperty("user.dir");
-        DirectoryController handler = new DirectoryController(root, "not/a/path.html", notFoundPath);
-        HttpRequest req = newHttpRequest("/");
-        HttpResponse res = handler.get(req);
-        Assert.assertEquals(HttpStatusCode.InternalServerError, res.statusCode);
-        Assert.assertEquals("Failed to load resource", res.content);
+        Configuration config = new Configuration();
+        config.set("DefaultRootDirectory", root);
+        config.set("HomePage", "not/a/path.html");
+        DirectoryController[] controllers = {
+                new DirectoryController(root, "not/a/path.html", notFoundPath),
+                new DirectoryController(config)
+        };
+        for (DirectoryController controller : controllers) {
+            HttpRequest req = newHttpRequest("/");
+            HttpResponse res = controller.get(req);
+            Assert.assertEquals(HttpStatusCode.InternalServerError, res.statusCode);
+            Assert.assertEquals("Failed to load resource", res.content);
+        }
     }
 }
