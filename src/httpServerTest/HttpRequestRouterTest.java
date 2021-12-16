@@ -77,4 +77,24 @@ public class HttpRequestRouterTest {
         Assert.assertEquals("Multipurpose GET", res.content);
         Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
     }
+
+    @Test
+    public void headRequestPerformsGetWithoutBody() {
+        HttpRequest req = new HttpRequest("HEAD /hello HTTP/1.1");
+        HttpRequestRouter router = new HttpRequestRouter();
+        HttpResponse res = router.route(req);
+        Assert.assertEquals(0, res.contentBytes.length);
+        Assert.assertEquals(1, res.headers.size());
+        Assert.assertNotNull(res.headers.get("Date"));
+        Assert.assertEquals(HttpStatusCode.NotFound, res.statusCode);
+
+        router.addController("/hello", (GetController) r -> new HttpResponse(HttpStatusCode.OK, "Hello Content"));
+        res = router.route(req);
+        Assert.assertEquals(0, res.contentBytes.length);
+        Assert.assertEquals(3, res.headers.size());
+        Assert.assertNotNull(res.headers.get("Date"));
+        Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
+        Assert.assertEquals("13", res.headers.get("Content-Length"));
+        Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
+    }
 }

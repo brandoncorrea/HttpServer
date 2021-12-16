@@ -16,13 +16,25 @@ public class HttpRequestRouter {
         for (String key : keys) {
             ControllerBase controller = controllers.get(key);
             if (controller == null) continue;
-            if (request.method == HttpMethod.GET && controller instanceof GetController)
-                return ((GetController)controller).get(request);
+            if (isGetOperation(request, controller))
+                return performGetRequest(request, (GetController) controller);
             else if (controller instanceof PostController)
                 return ((PostController)controller).post(request);
             return new HttpResponse(HttpStatusCode.MethodNotAllowed);
         }
 
         return new HttpResponse(HttpStatusCode.NotFound);
+    }
+
+    private HttpResponse performGetRequest(HttpRequest request, GetController controller) {
+        HttpResponse res = controller.get(request);
+        if (request.method == HttpMethod.GET)
+            return res;
+        return new HttpResponse(res.statusCode, res.headers);
+    }
+
+    private boolean isGetOperation(HttpRequest request, ControllerBase controller) {
+        boolean isGetMethod = request.method == HttpMethod.GET || request.method == HttpMethod.HEAD;
+        return isGetMethod && controller instanceof GetController;
     }
 }
