@@ -25,6 +25,8 @@ public class Main {
         router.addController("*", new DirectoryController(args.root, "src/resources/index.html", "src/resources/notFound.html"));
         Server server = new Server(args.port, router);
         Runtime.getRuntime().addShutdownHook(new Thread(server::shutdown));
+        System.out.println("Starting Server on localhost:" + args.port);
+        System.out.println("Root Directory: " + args.root);
         server.listen();
     }
 }
