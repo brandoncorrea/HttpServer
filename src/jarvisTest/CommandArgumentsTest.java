@@ -8,10 +8,13 @@ public class CommandArgumentsTest {
 
     @Test
     public void newCommandArgumentsWithDefaultValues() {
+        testNewCommandArguments(new String[0], 0, null);
+        for (int port : new int[] { 80, 8000 })
+            testNewCommandArguments(new String[] { "-p", String.valueOf(port) }, port, null);
+        for (String dir : new String[] { "my/directory/one", "anoth/er/direct/or/y" })
+            testNewCommandArguments(new String[] { "-r", dir }, 0, dir);
+
         String[][] testArgs = {
-                {},
-                {"-p", "80"},
-                {"-r", System.getProperty("user.dir")},
                 {"-r", System.getProperty("user.dir"), "-p", "80"},
                 {"-p", "80", "-r", System.getProperty("user.dir")},
         };
@@ -60,6 +63,8 @@ public class CommandArgumentsTest {
         testInvalidArguments(new String[] {"beef"}, "beef is not an argument");
         testInvalidArguments(new String[] {"chicken", "80"}, "chicken is not an argument");
         testInvalidArguments(new String[] {"-p", "abcdefg"}, "Invalid Port: abcdefg");
+        testInvalidArguments(new String[] {"-p", "0"}, "Invalid Port: 0");
+        testInvalidArguments(new String[] {"-p", "-1"}, "Invalid Port: -1");
         testInvalidArguments(new String[] {"-p", "Hellos!"}, "Invalid Port: Hellos!");
         testInvalidArguments(new String[] {"-p", "80", "-r"}, "Root directory not specified");
         testInvalidArguments(new String[] {"-r", "/My/Dir", "-p"}, "Port number not specified");

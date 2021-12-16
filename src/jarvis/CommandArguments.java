@@ -16,14 +16,14 @@ public class CommandArguments {
         for (int i = 0; i < args.length - 1; i += 2)
             if (Objects.equals(args[i], "-r"))
                 return args[i + 1];
-        return System.getProperty("user.dir");
+        return null;
     }
 
     private int getPort(String[] args) {
         for (int i = 0; i < args.length - 1; i += 2)
             if (Objects.equals(args[i], "-p"))
                 return parsePort(args[i + 1]);
-        return 80;
+        return 0;
     }
 
     private void validateArguments(String[] args) {
@@ -47,7 +47,9 @@ public class CommandArguments {
 
     private int parsePort(String port) {
         try {
-            return Integer.parseInt(port);
+            int parsedPort = Integer.parseInt(port);
+            if (parsedPort <= 0) throw new IllegalArgumentException();
+            return parsedPort;
         } catch (IllegalArgumentException ex) {
             throw new IllegalArgumentException("Invalid Port: " + port);
         }
