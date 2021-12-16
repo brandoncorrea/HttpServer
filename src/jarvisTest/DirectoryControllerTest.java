@@ -13,6 +13,7 @@ import java.util.List;
 
 public class DirectoryControllerTest {
     private final String indexPath = "src/resources/index.html";
+    private final String notFoundPath = "src/resources/notFound.html";
     private HttpRequest newHttpRequest(String uri) {
         return new HttpRequest(
                 new ByteArrayInputStream(
@@ -22,7 +23,7 @@ public class DirectoryControllerTest {
     @Test
     public void newDirectoryHandler() {
         String root = System.getProperty("user.dir");
-        DirectoryController handler = new DirectoryController(root, indexPath);
+        DirectoryController handler = new DirectoryController(root, indexPath, notFoundPath);
 
         HttpRequest req = newHttpRequest("/");
         HttpResponse res = handler.get(req);
@@ -41,10 +42,11 @@ public class DirectoryControllerTest {
 
     @Test
     public void newDirectoryHandlerFromSeparateRoot() {
-        String root = System.getProperty("user.dir") + "src";
-        DirectoryController handler = new DirectoryController(root, indexPath);
+        String root = System.getProperty("user.dir") + "/src";
+        DirectoryController handler = new DirectoryController(root, indexPath, notFoundPath);
         HttpRequest req = newHttpRequest("/");
         HttpResponse res = handler.get(req);
+        Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
         Assert.assertFalse(res.content.contains("<a href=\"/src\">"));
     }
 
@@ -53,7 +55,7 @@ public class DirectoryControllerTest {
         String[] uris = {"/src", "/src/"};
         for (String uri : uris) {
             String root = System.getProperty("user.dir");
-            DirectoryController handler = new DirectoryController(root, indexPath);
+            DirectoryController handler = new DirectoryController(root, indexPath, notFoundPath);
             HttpRequest req = newHttpRequest(uri);
 
             HttpResponse res = handler.get(req);
@@ -73,7 +75,7 @@ public class DirectoryControllerTest {
     @Test
     public void cannotRequestParentDirectory() {
         String root = System.getProperty("user.dir");
-        DirectoryController handler = new DirectoryController(root, indexPath);
+        DirectoryController handler = new DirectoryController(root, indexPath, notFoundPath);
         String[] uris = {"/..", "..", "/somewhere/over/../the/rainbow"};
         for (String uri : uris) {
             HttpRequest req = newHttpRequest(uri);
@@ -84,21 +86,22 @@ public class DirectoryControllerTest {
     }
 
     @Test
-    public void resultsInNotFoundForNonExistentFile() {
+    public void resultsInNotFoundForNonExistentFile() throws IOException {
         String[] paths = {"/not/a/path", "/fake/path.html"};
+        byte[] notFoundFile = FileHelper.readFile("src/resources/notFound.html").getBytes();
         for (String path : paths) {
-            DirectoryController handler = new DirectoryController(System.getProperty("user.dir"), indexPath);
+            DirectoryController handler = new DirectoryController(System.getProperty("user.dir"), indexPath, notFoundPath);
             HttpRequest req = newHttpRequest(path);
             HttpResponse res = handler.get(req);
             Assert.assertEquals(HttpStatusCode.NotFound, res.statusCode);
-            Assert.assertTrue(res.content.contains("Path Not Found"));
+            Assert.assertArrayEquals(notFoundFile, res.contentBytes);
         }
     }
 
     @Test
     public void fileRequestResultsInFileContent() throws IOException {
         String root = System.getProperty("user.dir");
-        DirectoryController handler = new DirectoryController(root, indexPath);
+        DirectoryController handler = new DirectoryController(root, indexPath, notFoundPath);
         HttpRequest req = newHttpRequest("/README.md");
         HttpResponse res = handler.get(req);
         Assert.assertArrayEquals(FileHelper.readFile("README.md").getBytes(), res.contentBytes);
@@ -108,7 +111,7 @@ public class DirectoryControllerTest {
     public void replacesEncodedSpacesInFilePath() throws IOException {
         String path = "/src/resources/public/documents/GOF%20Design%20Patterns.pdf";
         String root = System.getProperty("user.dir");
-        DirectoryController handler = new DirectoryController(root, indexPath);
+        DirectoryController handler = new DirectoryController(root, indexPath, notFoundPath);
         HttpRequest req = newHttpRequest(path);
         HttpResponse res = handler.get(req);
 
@@ -123,7 +126,7 @@ public class DirectoryControllerTest {
     @Test
     public void badHtmlFileReturnsServerError() {
         String root = System.getProperty("user.dir");
-        DirectoryController handler = new DirectoryController(root, "not/a/path.html");
+        DirectoryController handler = new DirectoryController(root, "not/a/path.html", notFoundPath);
         HttpRequest req = newHttpRequest("/");
         HttpResponse res = handler.get(req);
         Assert.assertEquals(HttpStatusCode.InternalServerError, res.statusCode);

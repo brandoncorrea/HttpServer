@@ -11,10 +11,12 @@ import java.util.Objects;
 public class DirectoryController implements GetController {
     private final String root;
     private final String htmlPagePath;
+    private final String notFoundPath;
 
-    public DirectoryController(String root, String htmlPage) {
+    public DirectoryController(String root, String htmlPage, String notFoundPage) {
         this.root = root;
-        this.htmlPagePath = htmlPage;
+        htmlPagePath = htmlPage;
+        notFoundPath = notFoundPage;
     }
 
     public HttpResponse get(HttpRequest request) {
@@ -27,7 +29,7 @@ public class DirectoryController implements GetController {
             if (uri.contains(".."))
                 return new HttpResponse(HttpStatusCode.Forbidden, "Cannot request parent directory");
             if (!file.exists())
-                return new HttpResponse(HttpStatusCode.NotFound, "Path Not Found");
+                return FileHelper.fileResponse(HttpStatusCode.NotFound, notFoundPath);
             if (file.isDirectory())
                 return buildDirectoryList(uri);
             return tryRequestFile(path);
