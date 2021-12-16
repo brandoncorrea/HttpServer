@@ -16,6 +16,11 @@ public class GuessController implements GetController, PostController {
         this.repo = repo;
     }
 
+    public GuessController(Configuration config, GuessingGameRepository repo) {
+        filePath = config.getString("GuessPage");
+        this.repo = repo;
+    }
+
     public HttpResponse get(HttpRequest request) {
         return renderPage(getSessionId(request));
     }

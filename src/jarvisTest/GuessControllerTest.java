@@ -3,9 +3,11 @@ package jarvisTest;
 import httpServer.HttpRequest;
 import httpServer.HttpResponse;
 import httpServer.HttpStatusCode;
+import jarvis.Configuration;
 import jarvis.GuessController;
 import jarvis.GuessingGame;
 import jarvis.GuessingGameRepository;
+import jdk.nashorn.internal.runtime.regexp.joni.Config;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -16,20 +18,28 @@ public class GuessControllerTest {
     @Test
     public void generatesRandomSessionIdGuids() {
         GuessingGameRepository repo = new GuessingGameRepository();
-        GuessController handler = new GuessController("src/resources/guess.html", repo);
-        HttpRequest req = new HttpRequest("GET / HTTP/1.1");
-        HttpResponse res = handler.get(req);
-        String guid1 = res.headers.get("Set-Cookie").substring(11);
-        res = handler.get(req);
-        String guid2 = res.headers.get("Set-Cookie").substring(11);
-        Assert.assertTrue(res.content.contains("Guess a number between 1 and 100"));
-        Assert.assertTrue(res.content.contains("7 tries left"));
-        Assert.assertNotEquals(guid1, guid2);
-        Assert.assertFalse(guid1.isEmpty());
-        Assert.assertFalse(guid2.isEmpty());
+        Configuration config = new Configuration();
+        config.set("GuessPage", "src/resources/guess.html");
+        GuessController[] controllers = {
+            new GuessController(config, repo),
+            new GuessController("src/resources/guess.html", repo)
+        };
 
-        UUID.fromString(guid1);
-        UUID.fromString(guid2);
+        for (GuessController controller : controllers) {
+            HttpRequest req = new HttpRequest("GET / HTTP/1.1");
+            HttpResponse res = controller.get(req);
+            String guid1 = res.headers.get("Set-Cookie").substring(11);
+            res = controller.get(req);
+            String guid2 = res.headers.get("Set-Cookie").substring(11);
+            Assert.assertTrue(res.content.contains("Guess a number between 1 and 100"));
+            Assert.assertTrue(res.content.contains("7 tries left"));
+            Assert.assertNotEquals(guid1, guid2);
+            Assert.assertFalse(guid1.isEmpty());
+            Assert.assertFalse(guid2.isEmpty());
+
+            UUID.fromString(guid1);
+            UUID.fromString(guid2);
+        }
     }
 
     @Test
@@ -88,10 +98,19 @@ public class GuessControllerTest {
     @Test
     public void serverErrorWhenFileNotFound() {
         GuessingGameRepository repo = new GuessingGameRepository();
-        GuessController handler = new GuessController("not/a/path.html", repo);
-        HttpResponse res = handler.get(new HttpRequest("GET / HTTP/1.1"));
-        Assert.assertEquals(HttpStatusCode.InternalServerError, res.statusCode);
-        Assert.assertEquals("Failed to load resource", res.content);
+        Configuration config = new Configuration();
+        config.set("GuessPage", "not/a/path.html");
+        GuessController[] controllers = {
+                new GuessController("not/a/path.html", repo),
+                new GuessController(config, repo),
+
+        };
+
+        for (GuessController controller : controllers) {
+            HttpResponse res = controller.get(new HttpRequest("GET / HTTP/1.1"));
+            Assert.assertEquals(HttpStatusCode.InternalServerError, res.statusCode);
+            Assert.assertEquals("Failed to load resource", res.content);
+        }
     }
 
     @Test

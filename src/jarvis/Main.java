@@ -21,7 +21,7 @@ public class Main {
         HttpRequestRouter router = new HttpRequestRouter();
         router.addController(config.getString("HelloEndpoint"), new FileController(config.getString("HelloPage")));
         router.addController(config.getString("PingEndpoint"), new PingController(config));
-        router.addController(config.getString("GuessEndpoint"), new GuessController("src/resources/guess.html", gameRepo));
+        router.addController(config.getString("GuessEndpoint"), new GuessController(config, gameRepo));
         router.addController("*", new DirectoryController(args.root, "src/resources/index.html", "src/resources/notFound.html"));
         Server server = new Server(args.port, router);
         Runtime.getRuntime().addShutdownHook(new Thread(server::shutdown));
