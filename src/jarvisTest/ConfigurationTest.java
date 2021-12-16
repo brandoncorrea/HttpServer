@@ -21,5 +21,27 @@ public class ConfigurationTest {
         Assert.assertEquals(100, config.getInt("OneHunnit"));
         Assert.assertEquals(" Another Space ", config.getString("ExtraSpaceSetting"));
         Assert.assertEquals(" Far out man ...      ", config.getString("Setting With Spaces"));
+
+        config.set("OneHunnit", "100");
+        Assert.assertEquals(100, config.getInt("OneHunnit"));
+        config.set("OneHunnit", "50");
+        Assert.assertEquals(50, config.getInt("OneHunnit"));
+        config.set("OneHunnit", "one hundred");
+        Assert.assertEquals(0, config.getInt("OneHunnit"));
+        Assert.assertEquals("one hundred", config.getString("OneHunnit"));
+        config.set("HelloPage", "newFile.html");
+        Assert.assertEquals("newFile.html", config.getString("HelloPage"));
+
+        Assert.assertNull(config.getString("CommentedSetting"));
+        Assert.assertNull(config.getString("#CommentedSetting"));
+        Assert.assertNull(config.getString("# CommentedSetting"));
+        Assert.assertNull(config.getString(" CommentedSetting"));
+        Assert.assertNull(config.getString("AlsoCommented"));
+        Assert.assertNull(config.getString("#AlsoCommented"));
+        Assert.assertNull(config.getString("# AlsoCommented"));
+        Assert.assertNull(config.getString(" AlsoCommented"));
+        Assert.assertNull(config.getString("  # AlsoCommented"));
+        Assert.assertNull(config.getString(" AlsoCommented"));
+        Assert.assertNull(config.getString(""));
     }
 }

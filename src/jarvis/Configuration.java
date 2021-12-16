@@ -24,15 +24,14 @@ public class Configuration {
         String[] parts = line.split("=");
         if (parts.length == 0) return;
         String key = parts[0].trim();
+        if (key.isEmpty() || key.startsWith("#")) return;
         if (parts.length == 1)
             settings.put(key, "");
         else
             settings.put(key, parts[1]);
     }
 
-    public String getString(String name) {
-        return settings.get(name);
-    }
+    public String getString(String name) { return settings.get(name); }
 
     public int getInt(String name) {
         try {
@@ -41,4 +40,6 @@ public class Configuration {
             return 0;
         }
     }
+
+    public void set(String name, String value) { settings.put(name, value); }
 }
