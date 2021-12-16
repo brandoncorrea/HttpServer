@@ -14,8 +14,8 @@ public class FileHelper {
 
     public static HttpResponse fileResponse(int statusCode, String path) throws IOException {
         File file = new File(path);
-        byte [] data  = new byte [(int) file.length()];
-        new BufferedInputStream(new FileInputStream(file)).read(data);
+        byte[] data  = new byte [(int) file.length()];
+        new FileInputStream(file).read(data);
         HttpResponse res = new HttpResponse(statusCode, data);
         res.headers.put("Content-Type", getContentType(path));
         res.headers.put("Content-Length", String.valueOf(data.length));
