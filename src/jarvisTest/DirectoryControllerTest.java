@@ -38,12 +38,11 @@ public class DirectoryControllerTest {
             HttpRequest req = newHttpRequest("/");
             HttpResponse res = controller.get(req);
 
-            String expected = "<ul><li><a href=\"/..\">..</a></li>\r\n";
+            String expected = "<a href=\"/..\">..</a>\r\n";
             List<String> dirs = Arrays.asList(new File(root).list());
             dirs.sort(String::compareTo);
             for (String f : dirs)
-                expected += "\t<li><a href=\"/" + f + "\">" + f + "</a></li>\r\n";
-            expected += "</ul>\r\n";
+                expected += "\t<a href=\"/" + f + "\">" + f + "</a>\r\n";
 
             Assert.assertTrue(res.content.contains(expected));
             Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
@@ -72,12 +71,11 @@ public class DirectoryControllerTest {
             HttpResponse res = handler.get(req);
             Assert.assertFalse(res.content.contains("<a href=\"/src\">"));
 
-            String expected = "<ul><li><a href=\"/src/..\">..</a></li>\r\n";
+            String expected = "<a href=\"/src/..\">..</a>\r\n";
             List<String> dirs = Arrays.asList(new File(root + "/src").list());
             dirs.sort(String::compareTo);
             for (String f : dirs)
-                expected += "\t<li><a href=\"/src/" + f + "\">" + f + "</a></li>\r\n";
-            expected += "</ul>\r\n";
+                expected += "\t<a href=\"/src/" + f + "\">" + f + "</a>\r\n";
 
             Assert.assertTrue(res.content.contains(expected));
         }

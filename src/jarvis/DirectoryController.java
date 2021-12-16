@@ -67,18 +67,18 @@ public class DirectoryController implements GetController {
 
     private String buildHtmlContent(String uri, List<String> paths) throws IOException {
         StringBuilder builder = new StringBuilder();
-        builder.append("<ul><li><a href=\"" + (Objects.equals(uri, "/") ? "" : uri) + "/..\">..</a></li>\r\n");
+        builder.append("<a href=\"" + (Objects.equals(uri, "/") ? "" : uri) + "/..\">..</a>\r\n");
         for (String path : paths)
-            builder.append("\t<li><a href=\"")
+            builder.append("\t<a href=\"")
                     .append(uri)
                     .append(Objects.equals(uri, "/") ? "" : "/")
                     .append(path)
                     .append("\">")
                     .append(path)
-                    .append("</a></li>\r\n");
+                    .append("</a>\r\n");
 
         return FileHelper
                 .readFile(htmlPagePath)
-                .replace("{{listings}}", builder.append("</ul>\r\n").toString());
+                .replace("{{listings}}", builder.toString());
     }
 }
