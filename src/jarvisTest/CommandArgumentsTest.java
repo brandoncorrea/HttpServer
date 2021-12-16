@@ -1,6 +1,6 @@
-package httpServerTest;
+package jarvisTest;
 
-import httpServer.CommandArguments;
+import jarvis.CommandArguments;
 import org.junit.Assert;
 import org.junit.Test;
 

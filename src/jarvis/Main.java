@@ -1,6 +1,5 @@
 package jarvis;
 
-import httpServer.CommandArguments;
 import httpServer.HttpRequestRouter;
 import httpServer.Server;
 
@@ -17,11 +16,12 @@ public class Main {
     }
 
     private static void runServer(CommandArguments args) throws IOException {
+        Configuration config = new Configuration("configuration.properties");
         GuessingGameRepository gameRepo = new GuessingGameRepository();
         HttpRequestRouter router = new HttpRequestRouter();
-        router.addController("/hello", new FileController("src/resources/hello.html"));
-        router.addController("/ping", new PingController("HH:mm:ss", "src/resources/ping.html"));
-        router.addController("/guess", new GuessController("src/resources/guess.html", gameRepo));
+        router.addController(config.getString("HelloEndpoint"), new FileController(config.getString("HelloPage")));
+        router.addController(config.getString("PingEndpoint"), new PingController(config.getString("PingTimeFormat"), config.getString("PingPage")));
+        router.addController(config.getString("GuessEndpoint"), new GuessController("src/resources/guess.html", gameRepo));
         router.addController("*", new DirectoryController(args.root, "src/resources/index.html", "src/resources/notFound.html"));
         Server server = new Server(args.port, router);
         Runtime.getRuntime().addShutdownHook(new Thread(server::shutdown));
