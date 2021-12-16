@@ -1,14 +1,13 @@
 package jarvisTest;
 
 import httpServer.*;
+import httpServerTest.HttpStatusCodeTest;
 import jarvis.DirectoryController;
 import jarvis.FileHelper;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.Arrays;
 import java.util.List;
 
@@ -102,7 +101,23 @@ public class DirectoryControllerTest {
         DirectoryController handler = new DirectoryController(root, indexPath);
         HttpRequest req = newHttpRequest("/README.md");
         HttpResponse res = handler.get(req);
-        Assert.assertEquals(FileHelper.readFile("README.md"), res.content);
+        Assert.assertArrayEquals(FileHelper.readFile("README.md").getBytes(), res.contentBytes);
+    }
+
+    @Test
+    public void replacesEncodedSpacesInFilePath() throws IOException {
+        String path = "/src/resources/public/documents/GOF%20Design%20Patterns.pdf";
+        String root = System.getProperty("user.dir");
+        DirectoryController handler = new DirectoryController(root, indexPath);
+        HttpRequest req = newHttpRequest(path);
+        HttpResponse res = handler.get(req);
+
+        Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
+
+        File file = new File(root + path.replace("%20", " "));
+        byte[] data = new byte[(int)file.length()];
+        new BufferedInputStream(new FileInputStream(file)).read(data);
+        Assert.assertArrayEquals(data, res.contentBytes);
     }
 
     @Test

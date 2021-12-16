@@ -19,14 +19,16 @@ public class DirectoryController implements GetController {
 
     public HttpResponse get(HttpRequest request) {
         try {
-            String uri = request.uri.replaceAll("[/]+$", "");
+            String uri = request.uri
+                    .replaceAll("[/]+$", "")
+                    .replace("%20", " ");
             String path = root + uri;
             File file = new File(path);
             if (uri.contains(".."))
                 return new HttpResponse(HttpStatusCode.Forbidden, "Cannot request parent directory");
             if (!file.exists())
                 return new HttpResponse(HttpStatusCode.NotFound, "Path Not Found");
-            if (new File(path).isDirectory())
+            if (file.isDirectory())
                 return buildDirectoryList(uri);
             return tryRequestFile(path);
         } catch (Exception ignored) {

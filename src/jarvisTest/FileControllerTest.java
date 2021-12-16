@@ -22,7 +22,7 @@ public class FileControllerTest {
             FileController handler = new FileController(path);
             HttpResponse res = handler.get(null);
             Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
-            Assert.assertEquals(FileHelper.readFile(path), res.content);
+            Assert.assertArrayEquals(FileHelper.readFile(path).getBytes(), res.contentBytes);
             Assert.assertEquals("text/html", res.headers.get("Content-Type"));
         }
     }
@@ -33,8 +33,8 @@ public class FileControllerTest {
         FileController handler = new FileController(path);
         HttpResponse res = handler.get(null);
         Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
-        Assert.assertEquals(FileHelper.readFile(path), res.content);
-        Assert.assertEquals("application/xml", res.headers.get("Content-Type"));
+        Assert.assertArrayEquals(FileHelper.readFile(path).getBytes(), res.contentBytes);
+        Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
     }
 
     @Test
