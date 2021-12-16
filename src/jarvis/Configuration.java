@@ -7,6 +7,8 @@ import java.util.Map;
 public class Configuration {
     private final Map<String, String> settings = new HashMap<>();
 
+    public Configuration() { }
+
     public Configuration(String filePath) {
         try {
             parseConfig(filePath);
