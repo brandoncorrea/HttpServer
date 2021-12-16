@@ -22,7 +22,7 @@ public class Main {
         router.addController(config.getString("HelloEndpoint"), new FileController(config.getString("HelloPage")));
         router.addController(config.getString("PingEndpoint"), new PingController(config));
         router.addController(config.getString("GuessEndpoint"), new GuessController(config, gameRepo));
-        router.addController("*", new DirectoryController(args.root, "src/resources/index.html", "src/resources/notFound.html"));
+        router.addController("*", new DirectoryController(args.root, config.getString("HomePage"), config.getString("NotFoundPage")));
         Server server = new Server(args.port, router);
         Runtime.getRuntime().addShutdownHook(new Thread(server::shutdown));
         System.out.println("Starting Server on localhost:" + args.port);
