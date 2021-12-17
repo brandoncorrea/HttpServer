@@ -34,6 +34,8 @@ public class FileHelper {
             return "application/pdf";
         else if (path.endsWith(".html"))
             return "text/html";
+        else if (path.endsWith(".mp3"))
+            return "audio/mpeg";
         return "text/plain";
     }
 
