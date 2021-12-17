@@ -3,7 +3,6 @@ package jarvis;
 import httpServer.*;
 
 import java.io.IOException;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -113,9 +112,11 @@ public class GuessController implements GetController, PostController {
 
     private String getSessionId(HttpRequest request) {
         try {
-            for (String cookie : request.headers.get("Cookie").split(";"))
-                if (Objects.equals(cookie.substring(0, 11), "session_id="))
+            for (String cookie : request.headers.get("Cookie").split(";")) {
+                cookie = cookie.trim();
+                if (cookie.startsWith("session_id="))
                     return cookie.substring(11);
+            }
         } catch (Exception ignored) { }
         return UUID.randomUUID().toString();
     }
