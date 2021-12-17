@@ -50,10 +50,8 @@ public class GuessControllerTest {
         String sessionId = res.headers.get("Set-Cookie").substring(11);
         req.headers.put("Cookie", "session_id=" + sessionId);
         GuessingGame game = repo.newGame(sessionId);
-        game.guess(game.answer + 1);
-        game.guess(game.answer + 1);
-        game.guess(game.answer + 1);
-        game.guess(game.answer + 1);
+        for (int i = 0; i < 4; i++)
+            game.guess(game.answer + 1);
         res = handler.get(req);
         Assert.assertTrue(res.content.contains("Guess a number between 1 and 100"));
         Assert.assertTrue(res.content.contains("Too high! 3 tries left"));
