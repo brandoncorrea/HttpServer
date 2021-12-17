@@ -92,7 +92,5 @@ public class HttpStatusCodeTest {
         Assert.assertEquals("Service Unavailable", HttpStatusCode.description(HttpStatusCode.ServiceUnavailable));
         Assert.assertEquals("Gateway Timeout", HttpStatusCode.description(HttpStatusCode.GatewayTimeout));
         Assert.assertEquals("HTTP Version Not Supported", HttpStatusCode.description(HttpStatusCode.HTTPVersionNotSupported));
-
     }
-
 }

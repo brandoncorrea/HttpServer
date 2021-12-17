@@ -14,13 +14,10 @@ public class SocketWorkerTest {
         // Throws on Output Stream
         Socket socket = new Socket() {
             private boolean open = true;
-            @Override
             public InputStream getInputStream() throws IOException {
                 throw new IOException();
             }
-            @Override
             public void close() { open = false; }
-            @Override
             public boolean isClosed() { return !open; }
         };
 
@@ -30,17 +27,13 @@ public class SocketWorkerTest {
         // Throws on Output Stream
         socket = new Socket() {
             private boolean open = true;
-            @Override
             public InputStream getInputStream() {
                 return new ByteArrayInputStream(new byte[0]);
             }
-            @Override
             public OutputStream getOutputStream() throws IOException {
                 throw new IOException();
             }
-            @Override
             public void close() { open = false; }
-            @Override
             public boolean isClosed() { return !open; }
         };
 
@@ -56,13 +49,9 @@ public class SocketWorkerTest {
             private final OutputStream out = new ByteArrayOutputStream();
             private boolean open = true;
 
-            @Override
             public InputStream getInputStream() { return in; }
-            @Override
             public OutputStream getOutputStream() { return out; }
-            @Override
             public boolean isClosed() { return !open; }
-            @Override
             public void close() { open = false; }
         };
 
