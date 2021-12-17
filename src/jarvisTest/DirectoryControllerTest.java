@@ -3,7 +3,6 @@ package jarvisTest;
 import httpServer.*;
 import jarvis.Configuration;
 import jarvis.DirectoryController;
-import httpServer.FileHelper;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -95,7 +94,7 @@ public class DirectoryControllerTest {
     @Test
     public void resultsInNotFoundForNonExistentFile() throws IOException {
         String[] paths = {"/not/a/path", "/fake/path.html"};
-        byte[] notFoundFile = FileHelper.readFile("src/resources/notFound.html").getBytes();
+        byte[] notFoundFile = FileHelper.readFileBytes("src/resources/notFound.html");
         for (String path : paths) {
             Configuration config = new Configuration();
             config.set("DefaultRootDirectory", System.getProperty("user.dir"));
@@ -121,7 +120,7 @@ public class DirectoryControllerTest {
         DirectoryController handler = new DirectoryController(root, indexPath, notFoundPath);
         HttpRequest req = newHttpRequest("/README.md");
         HttpResponse res = handler.get(req);
-        Assert.assertArrayEquals(FileHelper.readFile("README.md").getBytes(), res.contentBytes);
+        Assert.assertArrayEquals(FileHelper.readFileBytes("README.md"), res.contentBytes);
     }
 
     @Test

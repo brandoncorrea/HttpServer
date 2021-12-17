@@ -3,20 +3,11 @@ package httpServer;
 import java.io.*;
 
 public class FileHelper {
-    private FileHelper() { }
-
-    public static HttpResponse fileResponse(String path) throws IOException {
-        return fileResponse(HttpStatusCode.OK, path);
-    }
-
-    public static HttpResponse fileResponse(int statusCode, String path) throws IOException {
+    public static byte[] readFileBytes(String path) throws IOException {
         File file = new File(path);
         byte[] data  = new byte [(int) file.length()];
         new FileInputStream(file).read(data);
-        HttpResponse res = new HttpResponse(statusCode, data);
-        res.headers.put("Content-Type", getContentType(path));
-        res.headers.put("Content-Length", String.valueOf(data.length));
-        return res;
+        return data;
     }
 
     public static String getContentType(String path) {

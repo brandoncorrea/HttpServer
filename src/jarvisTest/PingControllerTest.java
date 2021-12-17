@@ -1,9 +1,9 @@
 package jarvisTest;
 
+import httpServer.FileHelper;
 import httpServer.HttpResponse;
 import httpServer.HttpStatusCode;
 import jarvis.Configuration;
-import httpServer.FileHelper;
 import jarvis.PingController;
 import org.junit.Assert;
 import org.junit.Test;
@@ -14,7 +14,7 @@ import java.util.Date;
 
 public class PingControllerTest {
 
-    private void TestPingController(String fileContent, String pattern, PingController controller) {
+    private void testPingController(String fileContent, String pattern, PingController controller) {
         long before = System.currentTimeMillis();
         HttpResponse res = controller.get(null);
         long after = System.currentTimeMillis();
@@ -34,12 +34,12 @@ public class PingControllerTest {
         String filePath = "src/resources/ping.html";
         String fileContent = FileHelper.readFile(filePath);
         for (String pattern : patterns) {
-            TestPingController(fileContent, pattern, new PingController(pattern, filePath));
+            testPingController(fileContent, pattern, new PingController(pattern, filePath));
             Configuration config = new Configuration();
             config.set("PingTimeFormat", pattern);
             config.set("PingSleepMS", "1000");
             config.set("PingPage", "src/resources/ping.html");
-            TestPingController(fileContent, pattern, new PingController(config));
+            testPingController(fileContent, pattern, new PingController(config));
         }
     }
 

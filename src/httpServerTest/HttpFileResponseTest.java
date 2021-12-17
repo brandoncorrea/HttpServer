@@ -1,8 +1,9 @@
 package httpServerTest;
 
+import httpServer.FileHelper;
 import httpServer.HttpResponse;
 import httpServer.HttpStatusCode;
-import httpServer.FileHelper;
+import httpServer.HttpFileResponse;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -11,7 +12,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-public class FileHelperTest {
+public class HttpFileResponseTest {
 
     private void testContentType(String expected, String filePath) {
         Assert.assertEquals(expected, FileHelper.getContentType(filePath));
@@ -45,7 +46,7 @@ public class FileHelperTest {
         };
 
         for (String path : paths) {
-            HttpResponse res = FileHelper.fileResponse(HttpStatusCode.OK, path);
+            HttpResponse res = new HttpFileResponse(HttpStatusCode.OK, path);
             Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
             Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
             Assert.assertEquals(String.valueOf(res.contentBytes.length), res.headers.get("Content-Length"));
@@ -56,7 +57,7 @@ public class FileHelperTest {
             Assert.assertArrayEquals(expected, res.contentBytes);
         }
 
-        HttpResponse res = FileHelper.fileResponse(HttpStatusCode.InternalServerError, "src/resources/public/memes/dwight.gif");
+        HttpResponse res = new HttpFileResponse(HttpStatusCode.InternalServerError, "src/resources/public/memes/dwight.gif");
         Assert.assertEquals(HttpStatusCode.InternalServerError, res.statusCode);
         Assert.assertEquals("image/gif", res.headers.get("Content-Type"));
     }

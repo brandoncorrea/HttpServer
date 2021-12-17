@@ -11,7 +11,7 @@ public class FileController implements GetController {
 
     public HttpResponse get(HttpRequest request) {
         try {
-            return FileHelper.fileResponse(filePath);
+            return new HttpFileResponse(filePath);
         } catch (IOException ex) {
             String content = "An error occurred while retrieving the resource.";
             return new HttpResponse(HttpStatusCode.InternalServerError, content);

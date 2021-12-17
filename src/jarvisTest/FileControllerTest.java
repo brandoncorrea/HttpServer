@@ -1,8 +1,8 @@
 package jarvisTest;
 
+import httpServer.FileHelper;
 import httpServer.HttpResponse;
 import httpServer.HttpStatusCode;
-import httpServer.FileHelper;
 import jarvis.FileController;
 import org.junit.Assert;
 import org.junit.Test;
@@ -22,7 +22,7 @@ public class FileControllerTest {
             FileController handler = new FileController(path);
             HttpResponse res = handler.get(null);
             Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
-            Assert.assertArrayEquals(FileHelper.readFile(path).getBytes(), res.contentBytes);
+            Assert.assertArrayEquals(FileHelper.readFileBytes(path), res.contentBytes);
             Assert.assertEquals("text/html", res.headers.get("Content-Type"));
         }
     }
@@ -33,7 +33,7 @@ public class FileControllerTest {
         FileController handler = new FileController(path);
         HttpResponse res = handler.get(null);
         Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
-        Assert.assertArrayEquals(FileHelper.readFile(path).getBytes(), res.contentBytes);
+        Assert.assertArrayEquals(FileHelper.readFileBytes(path), res.contentBytes);
         Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
     }
 

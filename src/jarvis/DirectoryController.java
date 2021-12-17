@@ -35,7 +35,7 @@ public class DirectoryController implements GetController {
             if (uri.contains(".."))
                 return new HttpResponse(HttpStatusCode.Forbidden, "Cannot request parent directory");
             if (!file.exists())
-                return FileHelper.fileResponse(HttpStatusCode.NotFound, notFoundPath);
+                return new HttpFileResponse(HttpStatusCode.NotFound, notFoundPath);
             if (file.isDirectory())
                 return buildDirectoryList(uri);
             return tryRequestFile(path);
@@ -46,7 +46,7 @@ public class DirectoryController implements GetController {
 
     private HttpResponse tryRequestFile(String path) {
         try {
-            return FileHelper.fileResponse(path);
+            return new HttpFileResponse(path);
         } catch (Exception ignored) {
             return new HttpResponse(HttpStatusCode.InternalServerError, "Failed to load file.");
         }
