@@ -1,11 +1,9 @@
 package jarvisTest;
 
 import httpServer.*;
-import httpServerTest.HttpStatusCodeTest;
 import jarvis.Configuration;
 import jarvis.DirectoryController;
 import jarvis.FileHelper;
-import jdk.nashorn.internal.runtime.regexp.joni.Config;
 import org.junit.Assert;
 import org.junit.Test;
 
