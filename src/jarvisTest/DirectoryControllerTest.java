@@ -3,7 +3,7 @@ package jarvisTest;
 import httpServer.*;
 import jarvis.Configuration;
 import jarvis.DirectoryController;
-import jarvis.FileHelper;
+import httpServer.FileHelper;
 import org.junit.Assert;
 import org.junit.Test;
 

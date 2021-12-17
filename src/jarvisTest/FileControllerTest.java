@@ -2,7 +2,7 @@ package jarvisTest;
 
 import httpServer.HttpResponse;
 import httpServer.HttpStatusCode;
-import jarvis.FileHelper;
+import httpServer.FileHelper;
 import jarvis.FileController;
 import org.junit.Assert;
 import org.junit.Test;

@@ -1,7 +1,4 @@
-package jarvis;
-
-import httpServer.HttpResponse;
-import httpServer.HttpStatusCode;
+package httpServer;
 
 import java.io.*;
 

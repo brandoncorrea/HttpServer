@@ -3,7 +3,7 @@ package jarvisTest;
 import httpServer.HttpResponse;
 import httpServer.HttpStatusCode;
 import jarvis.Configuration;
-import jarvis.FileHelper;
+import httpServer.FileHelper;
 import jarvis.PingController;
 import org.junit.Assert;
 import org.junit.Test;
