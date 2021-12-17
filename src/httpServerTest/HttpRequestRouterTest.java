@@ -7,58 +7,19 @@ import org.junit.Test;
 public class HttpRequestRouterTest {
 
     @Test
-    public void routeCreatesHttpResponse() {
-        HttpRequest req = new HttpRequest("GET /hello HTTP/1.1");
+    public void routeRespondsWithControllerResponse() {
         HttpRequestRouter router = new HttpRequestRouter();
-        HttpResponse res = router.route(req);
-        Assert.assertNull(res.content);
-        Assert.assertEquals(1, res.headers.size());
-        Assert.assertNotNull(res.headers.get("Date"));
-        Assert.assertEquals(HttpStatusCode.NotFound, res.statusCode);
-
+        testHttpRequestRouter(router, HttpMethod.GET, "/hello", null, HttpStatusCode.NotFound);
+        testHttpRequestRouter(router, HttpMethod.HEAD, "/hello", null, HttpStatusCode.NotFound);
         router.addController("/hello", (GetController) r -> new HttpResponse(HttpStatusCode.OK, "Hello Content"));
-
-        res = router.route(req);
-        Assert.assertNotNull(res.headers.get("Date"));
-        Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
-        Assert.assertEquals("13", res.headers.get("Content-Length"));
-        Assert.assertEquals("Hello Content", res.content);
-        Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
-
-        req = new HttpRequest("GET /goodbye HTTP/1.1");
+        testHttpRequestRouter(router, HttpMethod.GET, "/hello", "Hello Content", HttpStatusCode.OK);
+        testHttpRequestRouter(router, HttpMethod.POST, "/hello", null, HttpStatusCode.MethodNotAllowed);
         router.addController("/goodbye", (GetController) r -> new HttpResponse(HttpStatusCode.InternalServerError, "An error message"));
-        res = router.route(req);
-        Assert.assertNotNull(res.headers.get("Date"));
-        Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
-        Assert.assertEquals("16", res.headers.get("Content-Length"));
-        Assert.assertEquals("An error message", res.content);
-        Assert.assertEquals(HttpStatusCode.InternalServerError, res.statusCode);
+        testHttpRequestRouter(router, HttpMethod.GET, "/goodbye", "An error message", HttpStatusCode.InternalServerError);
+    }
 
-        req = new HttpRequest("GET /abcdefg HTTP/1.1");
-        router.addController("*", (GetController) r -> new HttpResponse(HttpStatusCode.OK, "Default Route"));
-        res = router.route(req);
-        Assert.assertNotNull(res.headers.get("Date"));
-        Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
-        Assert.assertEquals("13", res.headers.get("Content-Length"));
-        Assert.assertEquals("Default Route", res.content);
-        Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
-
-        req = new HttpRequest("POST /abcdefg HTTP/1.1");
-        res = router.route(req);
-        Assert.assertNotNull(res.headers.get("Date"));
-        Assert.assertNull(res.content);
-        Assert.assertEquals(HttpStatusCode.MethodNotAllowed, res.statusCode);
-
-        router.addController("/postNote",
-                (PostController) r -> new HttpResponse(HttpStatusCode.OK, "Completed POST Request"));
-        req = new HttpRequest("POST /postNote HTTP/1.1");
-        res = router.route(req);
-        Assert.assertNotNull(res.headers.get("Date"));
-        Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
-        Assert.assertEquals("22", res.headers.get("Content-Length"));
-        Assert.assertEquals("Completed POST Request", res.content);
-        Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
-
+    @Test
+    public void routeCreatesHttpResponse() {
         class multiPurposeController implements PostController, GetController {
             public HttpResponse get(HttpRequest request)
             { return new HttpResponse(HttpStatusCode.OK, "Multipurpose GET"); }
@@ -66,35 +27,52 @@ public class HttpRequestRouterTest {
             { return new HttpResponse(HttpStatusCode.Accepted, "Multipurpose POST"); }
         }
 
+        HttpRequestRouter router = new HttpRequestRouter();
         router.addController("/multiPurpose", new multiPurposeController());
-        req = new HttpRequest("POST /multiPurpose HTTP/1.1");
-        res = router.route(req);
-        Assert.assertEquals("Multipurpose POST", res.content);
-        Assert.assertEquals(HttpStatusCode.Accepted, res.statusCode);
-
-        req = new HttpRequest("GET /multiPurpose HTTP/1.1");
-        res = router.route(req);
-        Assert.assertEquals("Multipurpose GET", res.content);
-        Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
+        testHttpRequestRouter(
+                router,
+                HttpMethod.POST,
+                "/multiPurpose",
+                "Multipurpose POST",
+                HttpStatusCode.Accepted);
+        testHttpRequestRouter(
+                router,
+                HttpMethod.GET,
+                "/multiPurpose",
+                "Multipurpose GET",
+                HttpStatusCode.OK);
     }
 
     @Test
-    public void headRequestPerformsGetWithoutBody() {
-        HttpRequest req = new HttpRequest("HEAD /hello HTTP/1.1");
+    public void performsPostRequest() {
         HttpRequestRouter router = new HttpRequestRouter();
-        HttpResponse res = router.route(req);
-        Assert.assertEquals(0, res.contentBytes.length);
-        Assert.assertEquals(1, res.headers.size());
-        Assert.assertNotNull(res.headers.get("Date"));
-        Assert.assertEquals(HttpStatusCode.NotFound, res.statusCode);
+        router.addController("/postNote",
+                (PostController) r -> new HttpResponse(HttpStatusCode.OK, "Completed POST Request"));
+        testHttpRequestRouter(router, HttpMethod.POST, "/postNote", "Completed POST Request", HttpStatusCode.OK);
+    }
 
-        router.addController("/hello", (GetController) r -> new HttpResponse(HttpStatusCode.OK, "Hello Content"));
-        res = router.route(req);
-        Assert.assertEquals(0, res.contentBytes.length);
-        Assert.assertEquals(3, res.headers.size());
+    @Test
+    public void dispatchesToDefaultRouteIfNotFound() {
+        HttpRequestRouter router = new HttpRequestRouter();
+        router.addController("*", (GetController) r -> new HttpResponse(HttpStatusCode.OK, "Default Route"));
+        testHttpRequestRouter(router, HttpMethod.GET, "/abcdefg", "Default Route", HttpStatusCode.OK);
+    }
+
+    private void testHttpRequestRouter(HttpRequestRouter router, HttpMethod method, String route, String expectedContent, int expectedStatus) {
+        HttpRequest req = new HttpRequest(String.format("%s %s HTTP/1.1", method, route));
+        HttpResponse res = router.route(req);
         Assert.assertNotNull(res.headers.get("Date"));
-        Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
-        Assert.assertEquals("13", res.headers.get("Content-Length"));
-        Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
+        if (expectedContent == null) {
+            Assert.assertEquals(1, res.headers.size());
+            Assert.assertNull(res.content);
+            Assert.assertEquals(0, res.contentBytes.length);
+        } else {
+            Assert.assertEquals(String.valueOf(expectedContent.length()), res.headers.get("Content-Length"));
+            Assert.assertEquals(3, res.headers.size());
+            Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
+            Assert.assertEquals(expectedContent, res.content);
+            Assert.assertArrayEquals(expectedContent.getBytes(), res.contentBytes);
+        }
+        Assert.assertEquals(expectedStatus, res.statusCode);
     }
 }
