@@ -22,20 +22,21 @@ public class HttpResponseTest {
 
     @Test
     public void newHttpResponseWithContent() {
-        HttpResponse res = new HttpResponse(200, "Some Text");
-        Assert.assertEquals(200, res.statusCode);
-        Assert.assertEquals("Some Text", res.content);
-        Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
-        Assert.assertEquals("9", res.headers.get("Content-Length"));
-        Assert.assertNotNull(res.headers.get("Date"));
-        Assert.assertArrayEquals(res.content.getBytes(), res.contentBytes);
+        Object[][] options = new Object[][] {
+                { 200, "Some Test" },
+                { 500, "An error message" }
+        };
 
-        res = new HttpResponse(500, "An error message");
-        Assert.assertEquals(500, res.statusCode);
-        Assert.assertEquals("An error message", res.content);
-        Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
-        Assert.assertEquals("16", res.headers.get("Content-Length"));
-        Assert.assertArrayEquals(res.content.getBytes(), res.contentBytes);
+        for (Object[] responseOptions : options) {
+            int status = (int)responseOptions[0];
+            String content = responseOptions[1].toString();
+            HttpResponse res = new HttpResponse(status, content);
+            Assert.assertEquals(content, res.content);
+            Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
+            Assert.assertEquals(String.valueOf(content.length()), res.headers.get("Content-Length"));
+            Assert.assertNotNull(res.headers.get("Date"));
+            Assert.assertArrayEquals(res.content.getBytes(), res.contentBytes);
+        }
     }
 
     @Test
