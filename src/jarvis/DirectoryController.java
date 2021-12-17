@@ -53,10 +53,28 @@ public class DirectoryController implements GetController {
     }
 
     private HttpResponse buildDirectoryList(String uri) throws IOException {
-        List<String> paths = getDirectories(uri);
-        HttpResponse res = new HttpResponse(HttpStatusCode.OK, buildHtmlContent(uri, paths));
+        HttpResponse res = new HttpResponse(HttpStatusCode.OK, buildHtmlContent(uri));
         res.headers.put("Content-Type", "text/html");
         return res;
+    }
+
+    private String buildHtmlContent(String uri) throws IOException {
+        return FileHelper
+                .readFile(htmlPagePath)
+                .replace("{{listings}}", buildListings(uri));
+    }
+
+    private String buildListings(String uri) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(previousDirectoryTag(uri));
+        for (String path : getDirectories(uri))
+            appendAnchorTag(builder, uri, path);
+        return builder.toString();
+    }
+
+    private String previousDirectoryTag(String uri) {
+        if (Objects.equals(uri, "/")) uri = "";
+        return "<a href=\"" + uri + "/..\">..</a>\r\n";
     }
 
     private List<String> getDirectories(String uri) {
@@ -65,20 +83,13 @@ public class DirectoryController implements GetController {
         return paths;
     }
 
-    private String buildHtmlContent(String uri, List<String> paths) throws IOException {
-        StringBuilder builder = new StringBuilder();
-        builder.append("<a href=\"" + (Objects.equals(uri, "/") ? "" : uri) + "/..\">..</a>\r\n");
-        for (String path : paths)
-            builder.append("\t<a href=\"")
-                    .append(uri)
-                    .append(Objects.equals(uri, "/") ? "" : "/")
-                    .append(path)
-                    .append("\">")
-                    .append(path)
-                    .append("</a>\r\n");
-
-        return FileHelper
-                .readFile(htmlPagePath)
-                .replace("{{listings}}", builder.toString());
+    private void appendAnchorTag(StringBuilder builder, String uri, String path) {
+        builder.append("\t<a href=\"")
+                .append(uri)
+                .append(Objects.equals(uri, "/") ? "" : "/")
+                .append(path)
+                .append("\">")
+                .append(path)
+                .append("</a>\r\n");
     }
 }
