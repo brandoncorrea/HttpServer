@@ -1,5 +1,6 @@
 package jarvis;
 
+import httpServer.HttpMethod;
 import httpServer.HttpRequestRouter;
 import httpServer.Server;
 
@@ -33,10 +34,11 @@ public class Main {
         TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
         GuessingGameRepository gameRepo = new GuessingGameRepository(config);
         HttpRequestRouter router = new HttpRequestRouter();
-        router.addController(config.getString("HelloEndpoint"), new FileController(config.getString("HelloPage")));
-        router.addController(config.getString("PingEndpoint"), new PingController(config));
-        router.addController(config.getString("GuessEndpoint"), new GuessController(config, gameRepo));
-        router.addController("*", new DirectoryController(config));
+        router.addController(config.getString("HelloEndpoint"), HttpMethod.GET, r -> FileController.get(config.getString("HelloPage")));
+        router.addController(config.getString("PingEndpoint"), HttpMethod.GET, r -> new PingController(config).get(r));
+        router.addController(config.getString("GuessEndpoint"), HttpMethod.GET, r -> new GuessController(config, gameRepo).get(r));
+        router.addController(config.getString("GuessEndpoint"), HttpMethod.POST, r -> new GuessController(config, gameRepo).post(r));
+        router.addController("*", HttpMethod.GET, r -> new DirectoryController(config).get(r));
         Server server = new Server(config.getInt("DefaultPort"), router);
         Runtime.getRuntime().addShutdownHook(new Thread(server::shutdown));
         System.out.println("Starting Server on localhost:" + server.port);

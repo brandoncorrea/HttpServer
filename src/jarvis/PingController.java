@@ -5,7 +5,7 @@ import httpServer.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class PingController implements GetController {
+public class PingController {
     private final SimpleDateFormat dateFormatter;
     private final String filePath;
     private final int pingSleepMs;

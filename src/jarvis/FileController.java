@@ -4,12 +4,9 @@ import httpServer.*;
 
 import java.io.IOException;
 
-public class FileController implements GetController {
-    private final String filePath;
+public class FileController {
 
-    public FileController(String filePath) { this.filePath = filePath; }
-
-    public HttpResponse get(HttpRequest request) {
+    public static HttpResponse get(String filePath) {
         try {
             return new HttpFileResponse(filePath);
         } catch (IOException ex) {

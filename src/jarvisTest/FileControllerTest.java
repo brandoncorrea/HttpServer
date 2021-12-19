@@ -19,8 +19,7 @@ public class FileControllerTest {
         };
 
         for (String path : paths) {
-            FileController handler = new FileController(path);
-            HttpResponse res = handler.get(null);
+            HttpResponse res = FileController.get(path);
             Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
             Assert.assertArrayEquals(FileHelper.readFileBytes(path), res.contentBytes);
             Assert.assertEquals("text/html", res.headers.get("Content-Type"));
@@ -30,8 +29,7 @@ public class FileControllerTest {
     @Test
     public void loadsNonHtmlFile() throws IOException {
         String path = "HttpServer.iml";
-        FileController handler = new FileController(path);
-        HttpResponse res = handler.get(null);
+        HttpResponse res = FileController.get(path);
         Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
         Assert.assertArrayEquals(FileHelper.readFileBytes(path), res.contentBytes);
         Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
@@ -39,8 +37,7 @@ public class FileControllerTest {
 
     @Test
     public void respondFailsToReadFile() {
-        FileController handler = new FileController("not/a/file.html");
-        HttpResponse res = handler.get(null);
+        HttpResponse res = FileController.get("not/a/file.html");
         Assert.assertEquals(HttpStatusCode.InternalServerError, res.statusCode);
         Assert.assertEquals("An error occurred while retrieving the resource.", res.content);
     }

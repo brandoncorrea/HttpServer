@@ -56,7 +56,7 @@ public class SocketWorkerTest {
         };
 
         HttpRequestRouter router = new HttpRequestRouter();
-        router.addController("/hello", (GetController) r -> new HttpResponse(HttpStatusCode.OK, "Hello!"));
+        router.addController("/hello", HttpMethod.GET, r -> new HttpResponse(HttpStatusCode.OK, "Hello!"));
         new SocketWorker(socket, router).run();
 
         ByteArrayOutputStream out = (ByteArrayOutputStream)socket.getOutputStream();

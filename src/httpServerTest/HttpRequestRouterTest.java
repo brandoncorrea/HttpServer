@@ -11,24 +11,18 @@ public class HttpRequestRouterTest {
         HttpRequestRouter router = new HttpRequestRouter();
         testHttpRequestRouter(router, HttpMethod.GET, "/hello", null, HttpStatusCode.NotFound);
         testHttpRequestRouter(router, HttpMethod.HEAD, "/hello", null, HttpStatusCode.NotFound);
-        router.addController("/hello", (GetController) r -> new HttpResponse(HttpStatusCode.OK, "Hello Content"));
+        router.addController("/hello", HttpMethod.GET, r -> new HttpResponse(HttpStatusCode.OK, "Hello Content"));
         testHttpRequestRouter(router, HttpMethod.GET, "/hello", "Hello Content", HttpStatusCode.OK);
         testHttpRequestRouter(router, HttpMethod.POST, "/hello", null, HttpStatusCode.MethodNotAllowed);
-        router.addController("/goodbye", (GetController) r -> new HttpResponse(HttpStatusCode.InternalServerError, "An error message"));
+        router.addController("/goodbye", HttpMethod.GET, r -> new HttpResponse(HttpStatusCode.InternalServerError, "An error message"));
         testHttpRequestRouter(router, HttpMethod.GET, "/goodbye", "An error message", HttpStatusCode.InternalServerError);
     }
 
     @Test
     public void routeCreatesHttpResponse() {
-        class multiPurposeController implements PostController, GetController {
-            public HttpResponse get(HttpRequest request)
-            { return new HttpResponse(HttpStatusCode.OK, "Multipurpose GET"); }
-            public HttpResponse post(HttpRequest request)
-            { return new HttpResponse(HttpStatusCode.Accepted, "Multipurpose POST"); }
-        }
-
         HttpRequestRouter router = new HttpRequestRouter();
-        router.addController("/multiPurpose", new multiPurposeController());
+        router.addController("/multiPurpose", HttpMethod.GET, r -> new HttpResponse(HttpStatusCode.OK, "Multipurpose GET"));
+        router.addController("/multiPurpose", HttpMethod.POST, r -> new HttpResponse(HttpStatusCode.Accepted, "Multipurpose POST"));
         testHttpRequestRouter(
                 router,
                 HttpMethod.POST,
@@ -47,14 +41,14 @@ public class HttpRequestRouterTest {
     public void performsPostRequest() {
         HttpRequestRouter router = new HttpRequestRouter();
         router.addController("/postNote",
-                (PostController) r -> new HttpResponse(HttpStatusCode.OK, "Completed POST Request"));
+                HttpMethod.POST, r -> new HttpResponse(HttpStatusCode.OK, "Completed POST Request"));
         testHttpRequestRouter(router, HttpMethod.POST, "/postNote", "Completed POST Request", HttpStatusCode.OK);
     }
 
     @Test
     public void dispatchesToDefaultRouteIfNotFound() {
         HttpRequestRouter router = new HttpRequestRouter();
-        router.addController("*", (GetController) r -> new HttpResponse(HttpStatusCode.OK, "Default Route"));
+        router.addController("*", HttpMethod.GET, r -> new HttpResponse(HttpStatusCode.OK, "Default Route"));
         testHttpRequestRouter(router, HttpMethod.GET, "/abcdefg", "Default Route", HttpStatusCode.OK);
     }
 

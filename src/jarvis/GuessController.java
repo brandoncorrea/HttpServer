@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.UUID;
 import java.util.function.Function;
 
-public class GuessController implements GetController, PostController {
+public class GuessController {
     private final String filePath;
     private final GuessingGameRepository repo;
 
