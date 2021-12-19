@@ -14,6 +14,10 @@ public class HttpRequestRouter {
     }
 
     public HttpResponse route(HttpRequest request) {
+        return route(request, controllers);
+    }
+
+    public static HttpResponse route(HttpRequest request, Map<String, Map<HttpMethod, Function<HttpRequest, HttpResponse>>> controllers) {
         String[] uris = { request.uri, "*" };
         for (String uri : uris) {
             Map<HttpMethod, Function<HttpRequest, HttpResponse>> controller = controllers.get(uri);
@@ -30,7 +34,7 @@ public class HttpRequestRouter {
         return new HttpResponse(HttpStatusCode.NotFound);
     }
 
-    private HttpResponse removeBody(HttpResponse response) {
+    private static HttpResponse removeBody(HttpResponse response) {
         return new HttpResponse(response.statusCode, response.headers);
     }
 }

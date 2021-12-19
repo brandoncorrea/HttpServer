@@ -4,7 +4,29 @@ import httpServer.*;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+
 public class HttpRequestRouterTest {
+
+    @Test
+    public void routesUsingMapOfControllers() {
+        Map<String, Map<HttpMethod, Function<HttpRequest, HttpResponse>>> router = new HashMap<>();
+        Map<HttpMethod, Function<HttpRequest, HttpResponse>> controller = new HashMap<>();
+        controller.put(HttpMethod.GET, r -> new HttpResponse(200));
+        router.put("/hello", controller);
+        HttpRequest req = new HttpRequest("GET /hello HTTP/1.1");
+        HttpResponse res = HttpRequestRouter.route(req, router);
+        Assert.assertEquals(200, res.statusCode);
+
+        controller = new HashMap<>();
+        controller.put(HttpMethod.POST, r -> new HttpResponse(300));
+        router.put("/goodbye", controller);
+        req = new HttpRequest("POST /goodbye HTTP/1.1");
+        res = HttpRequestRouter.route(req, router);
+        Assert.assertEquals(300, res.statusCode);
+    }
 
     @Test
     public void routeRespondsWithControllerResponse() {

@@ -39,7 +39,7 @@ public class Main {
         router.addController(config.getString("GuessEndpoint"), HttpMethod.GET, r -> new GuessController(config, gameRepo).get(r));
         router.addController(config.getString("GuessEndpoint"), HttpMethod.POST, r -> new GuessController(config, gameRepo).post(r));
         router.addController("*", HttpMethod.GET, r -> new DirectoryController(config).get(r));
-        Server server = new Server(config.getInt("DefaultPort"), router);
+        Server server = new Server(config.getInt("DefaultPort"), router::route);
         Runtime.getRuntime().addShutdownHook(new Thread(server::shutdown));
         System.out.println("Starting Server on localhost:" + server.port);
         System.out.println("Root Directory: " + config.getString("DefaultRootDirectory"));
