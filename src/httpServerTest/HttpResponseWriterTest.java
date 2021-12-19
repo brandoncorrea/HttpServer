@@ -11,11 +11,6 @@ import java.io.IOException;
 
 public class HttpResponseWriterTest {
     @Test
-    public void newHttpResponseWriter() {
-        new HttpResponseWriter();
-    }
-
-    @Test
     public void writeStatusCode() throws IOException {
         HttpResponse res = new HttpResponse(HttpStatusCode.OK);
         res.headers.put("Date", "date content");
@@ -62,9 +57,8 @@ public class HttpResponseWriterTest {
     }
 
     private void testWriter(HttpResponse response, String expected) throws IOException {
-        HttpResponseWriter writer = new HttpResponseWriter();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        writer.write(out, response);
+        HttpResponseWriter.write(out, response);
         Assert.assertEquals(expected, out.toString());
     }
 }

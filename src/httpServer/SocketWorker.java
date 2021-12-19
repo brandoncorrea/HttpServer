@@ -4,13 +4,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.function.Function;
 
 public class SocketWorker implements Runnable {
     private final Socket socket;
-    private final HttpResponseWriter writer = new HttpResponseWriter();
-    private final HttpRequestRouter router;
+    private final Function<HttpRequest, HttpResponse> router;
 
-    public SocketWorker(Socket socket, HttpRequestRouter router) {
+    public SocketWorker(Socket socket, Function<HttpRequest, HttpResponse> router) {
         this.socket = socket;
         this.router = router;
     }
@@ -20,7 +20,7 @@ public class SocketWorker implements Runnable {
             InputStream in = socket.getInputStream();
             OutputStream out = socket.getOutputStream();
             HttpRequest request = new HttpRequest(in);
-            writer.write(out, router.route(request));
+            HttpResponseWriter.write(out, router.apply(request));
             in.close();
             out.close();
         } catch (IOException ex) {
@@ -28,7 +28,7 @@ public class SocketWorker implements Runnable {
         }
     }
 
-    private void tryCloseClient(Socket client) {
+    private static void tryCloseClient(Socket client) {
         try { client.close(); }
         catch (IOException ignored) { }
     }

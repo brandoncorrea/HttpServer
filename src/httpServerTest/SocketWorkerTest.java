@@ -21,7 +21,7 @@ public class SocketWorkerTest {
             public boolean isClosed() { return !open; }
         };
 
-        new SocketWorker(socket,new HttpRequestRouter()).run();
+        new SocketWorker(socket, r -> new HttpResponse(200)).run();
         Assert.assertTrue(socket.isClosed());
 
         // Throws on Output Stream
@@ -37,7 +37,7 @@ public class SocketWorkerTest {
             public boolean isClosed() { return !open; }
         };
 
-        new SocketWorker(socket, new HttpRequestRouter()).run();
+        new SocketWorker(socket, r -> new HttpResponse(200)).run();
         Assert.assertTrue(socket.isClosed());
     }
 
@@ -55,10 +55,7 @@ public class SocketWorkerTest {
             public void close() { open = false; }
         };
 
-        HttpRequestRouter router = new HttpRequestRouter();
-        router.addController("/hello", HttpMethod.GET, r -> new HttpResponse(HttpStatusCode.OK, "Hello!"));
-        new SocketWorker(socket, router).run();
-
+        new SocketWorker(socket, r -> new HttpResponse(HttpStatusCode.OK, "Hello!")).run();
         ByteArrayOutputStream out = (ByteArrayOutputStream)socket.getOutputStream();
         String output = out.toString();
         Assert.assertFalse(socket.isClosed());
