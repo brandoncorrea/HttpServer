@@ -4,6 +4,7 @@ import httpServer.*;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
 public class PingController {
     private final SimpleDateFormat dateFormatter;
@@ -22,14 +23,14 @@ public class PingController {
         pingSleepMs = config.getInt("PingSleepMS");
     }
 
-    public HttpResponse get(HttpRequest request) {
+    public Map<String, Object> get(HttpRequest request) {
         try {
             sleep();
-            HttpResponse res = new HttpResponse(HttpStatusCode.OK, FileHelper.readFile(filePath).replace("{{timestamp}}", now()));
-            res.headers.put("Content-Type", "text/html");
+            Map<String, Object> res = HttpResponse.create(HttpStatusCode.OK, FileHelper.readFile(filePath).replace("{{timestamp}}", now()));
+            HttpResponse.headers(res).put("Content-Type", "text/html");
             return res;
         } catch(Exception ignored) {
-            return new HttpResponse(HttpStatusCode.InternalServerError, "Failed to load resource");
+            return HttpResponse.create(HttpStatusCode.InternalServerError, "Failed to load resource");
         }
     }
 

@@ -11,21 +11,22 @@ import org.junit.Test;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
 public class PingControllerTest {
 
     private void testPingController(String fileContent, String pattern, PingController controller) {
         long before = System.currentTimeMillis();
-        HttpResponse res = controller.get(null);
+        Map<String, Object> res = controller.get(null);
         long after = System.currentTimeMillis();
         long diff = after - before;
         Assert.assertTrue(1000 < diff && diff < 1100);
 
-        Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
+        Assert.assertEquals(HttpStatusCode.OK, res.get("status"));
 
         String formattedDate = new SimpleDateFormat(pattern).format(new Date());
-        Assert.assertEquals(fileContent.replace("{{timestamp}}", formattedDate), res.content);
-        Assert.assertEquals("text/html", res.headers.get("Content-Type"));
+        Assert.assertArrayEquals(fileContent.replace("{{timestamp}}", formattedDate).getBytes(), HttpResponse.body(res));
+        Assert.assertEquals("text/html", HttpResponse.headers(res).get("Content-Type"));
     }
 
     @Test
@@ -46,16 +47,16 @@ public class PingControllerTest {
     @Test
     public void badFileReturnsServerError() {
         PingController handler = new PingController("HH:mm:ss", "nott/a/path.html");
-        HttpResponse res = handler.get(null);
-        Assert.assertEquals(HttpStatusCode.InternalServerError, res.statusCode);
-        Assert.assertEquals("Failed to load resource", res.content);
+        Map<String, Object> res = handler.get(null);
+        Assert.assertEquals(HttpStatusCode.InternalServerError, res.get("status"));
+        Assert.assertArrayEquals("Failed to load resource".getBytes(), HttpResponse.body(res));
 
         Configuration config = new Configuration();
         config.set("PingTimeFormat", "HH:mm:ss");
         config.set("PingSleepMS", "1000");
         config.set("PingPage", "nott/a/path.html");
         res = new PingController(config).get(null);
-        Assert.assertEquals(HttpStatusCode.InternalServerError, res.statusCode);
-        Assert.assertEquals("Failed to load resource", res.content);
+        Assert.assertEquals(HttpStatusCode.InternalServerError, res.get("status"));
+        Assert.assertArrayEquals("Failed to load resource".getBytes(), HttpResponse.body(res));
     }
 }

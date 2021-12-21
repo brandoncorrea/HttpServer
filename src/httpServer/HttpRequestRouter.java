@@ -6,35 +6,31 @@ import java.util.function.Function;
 
 public class HttpRequestRouter {
 
-    Map<String, Map<HttpMethod, Function<HttpRequest, HttpResponse>>> controllers = new HashMap<>();
+    Map<String, Map<HttpMethod, Function<HttpRequest, Map<String, Object>>>> controllers = new HashMap<>();
 
-    public void addController(String uri, HttpMethod method, Function<HttpRequest, HttpResponse> controller) {
-        Map<HttpMethod, Function<HttpRequest, HttpResponse>> methods = controllers.computeIfAbsent(uri, k -> new HashMap<>());
+    public void addController(String uri, HttpMethod method, Function<HttpRequest, Map<String, Object>> controller) {
+        Map<HttpMethod, Function<HttpRequest, Map<String, Object>>> methods = controllers.computeIfAbsent(uri, k -> new HashMap<>());
         methods.put(method, controller);
     }
 
-    public HttpResponse route(HttpRequest request) {
+    public Map<String, Object> route(HttpRequest request) {
         return route(request, controllers);
     }
 
-    public static HttpResponse route(HttpRequest request, Map<String, Map<HttpMethod, Function<HttpRequest, HttpResponse>>> controllers) {
+    public static Map<String, Object> route(HttpRequest request, Map<String, Map<HttpMethod, Function<HttpRequest, Map<String, Object>>>> controllers) {
         String[] uris = { request.uri, "*" };
         for (String uri : uris) {
-            Map<HttpMethod, Function<HttpRequest, HttpResponse>> controller = controllers.get(uri);
+            Map<HttpMethod, Function<HttpRequest, Map<String, Object>>> controller = controllers.get(uri);
             if (controller == null) continue;
             if (!controller.containsKey(request.method))
-                return new HttpResponse(HttpStatusCode.MethodNotAllowed);
+                return HttpResponse.create(HttpStatusCode.MethodNotAllowed);
 
-            HttpResponse response = controller.get(request.method).apply(request);
+            Map<String, Object> response = controller.get(request.method).apply(request);
             if (request.method == HttpMethod.HEAD)
-                return removeBody(response);
+                response.remove("body");
             return response;
         }
 
-        return new HttpResponse(HttpStatusCode.NotFound);
-    }
-
-    private static HttpResponse removeBody(HttpResponse response) {
-        return new HttpResponse(response.statusCode, response.headers);
+        return HttpResponse.create(HttpStatusCode.NotFound);
     }
 }

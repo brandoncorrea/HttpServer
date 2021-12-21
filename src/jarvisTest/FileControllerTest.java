@@ -8,6 +8,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 public class FileControllerTest {
     @Test
@@ -19,26 +21,26 @@ public class FileControllerTest {
         };
 
         for (String path : paths) {
-            HttpResponse res = FileController.get(path);
-            Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
-            Assert.assertArrayEquals(FileHelper.readFileBytes(path), res.contentBytes);
-            Assert.assertEquals("text/html", res.headers.get("Content-Type"));
+            Map<String, Object> res = FileController.get(path);
+            Assert.assertEquals(HttpStatusCode.OK, res.get("status"));
+            Assert.assertArrayEquals(FileHelper.readFileBytes(path), HttpResponse.body(res));
+            Assert.assertEquals("text/html", HttpResponse.headers(res).get("Content-Type"));
         }
     }
 
     @Test
     public void loadsNonHtmlFile() throws IOException {
         String path = "HttpServer.iml";
-        HttpResponse res = FileController.get(path);
-        Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
-        Assert.assertArrayEquals(FileHelper.readFileBytes(path), res.contentBytes);
-        Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
+        Map<String, Object> res = FileController.get(path);
+        Assert.assertEquals(HttpStatusCode.OK, res.get("status"));
+        Assert.assertArrayEquals(FileHelper.readFileBytes(path), HttpResponse.body(res));
+        Assert.assertEquals("text/plain", HttpResponse.headers(res).get("Content-Type"));
     }
 
     @Test
     public void respondFailsToReadFile() {
-        HttpResponse res = FileController.get("not/a/file.html");
-        Assert.assertEquals(HttpStatusCode.InternalServerError, res.statusCode);
-        Assert.assertEquals("An error occurred while retrieving the resource.", res.content);
+        Map<String, Object> res = FileController.get("not/a/file.html");
+        Assert.assertEquals(HttpStatusCode.InternalServerError, res.get("status"));
+        Assert.assertArrayEquals("An error occurred while retrieving the resource.".getBytes(), HttpResponse.body(res));
     }
 }

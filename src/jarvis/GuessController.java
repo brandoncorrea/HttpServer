@@ -3,6 +3,7 @@ package jarvis;
 import httpServer.*;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -20,11 +21,11 @@ public class GuessController {
         this.repo = repo;
     }
 
-    public HttpResponse get(HttpRequest request) {
+    public Map<String, Object> get(HttpRequest request) {
         return renderPage(getSessionId(request));
     }
 
-    public HttpResponse post(HttpRequest request) {
+    public Map<String, Object> post(HttpRequest request) {
         String[] params = parseParameters(request);
         String sessionId = getSessionId(request);
         if (newGameClicked(params))
@@ -62,18 +63,18 @@ public class GuessController {
         return null;
     }
 
-    private HttpResponse renderPage(String sessionId) {
+    private Map<String, Object> renderPage(String sessionId) {
         try {
             return constructResponse(sessionId);
         } catch (Exception ignored) {
-            return new HttpResponse(HttpStatusCode.InternalServerError, "Failed to load resource");
+            return HttpResponse.create(HttpStatusCode.InternalServerError, "Failed to load resource");
         }
     }
 
-    private HttpResponse constructResponse(String sessionId) throws IOException {
-        HttpResponse res = new HttpResponse(HttpStatusCode.OK, constructResponseContent(sessionId));
-        res.headers.put("Content-Type", "text/html");
-        res.headers.put("Set-Cookie", "session_id=" + sessionId);
+    private Map<String, Object> constructResponse(String sessionId) throws IOException {
+        Map<String, Object> res = HttpResponse.create(HttpStatusCode.OK, constructResponseContent(sessionId));
+        HttpResponse.headers(res).put("Content-Type", "text/html");
+        HttpResponse.headers(res).put("Set-Cookie", "session_id=" + sessionId);
         return res;
     }
 

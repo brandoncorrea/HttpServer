@@ -9,6 +9,7 @@ import org.junit.Test;
 import java.io.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class DirectoryControllerTest {
     private final String indexPath = "src/resources/index.html";
@@ -33,7 +34,7 @@ public class DirectoryControllerTest {
 
         for (DirectoryController controller : controllers) {
             HttpRequest req = newHttpRequest("/");
-            HttpResponse res = controller.get(req);
+            Map<String, Object> res = controller.get(req);
 
             String expected = "<a href=\"/..\">..</a>\r\n";
             List<String> dirs = Arrays.asList(new File(root).list());
@@ -41,9 +42,9 @@ public class DirectoryControllerTest {
             for (String f : dirs)
                 expected += "\t<a href=\"/" + f + "\">" + f + "</a>\r\n";
 
-            Assert.assertTrue(res.content.contains(expected));
-            Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
-            Assert.assertEquals("text/html", res.headers.get("Content-Type"));
+            Assert.assertTrue(new String(HttpResponse.body(res)).contains(expected));
+            Assert.assertEquals(HttpStatusCode.OK, res.get("status"));
+            Assert.assertEquals("text/html", HttpResponse.headers(res).get("Content-Type"));
         }
     }
 
@@ -52,9 +53,9 @@ public class DirectoryControllerTest {
         String root = System.getProperty("user.dir") + "/src";
         DirectoryController handler = new DirectoryController(root, indexPath, notFoundPath);
         HttpRequest req = newHttpRequest("/");
-        HttpResponse res = handler.get(req);
-        Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
-        Assert.assertFalse(res.content.contains("<a href=\"/src\">"));
+        Map<String, Object> res = handler.get(req);
+        Assert.assertEquals(HttpStatusCode.OK, res.get("status"));
+        Assert.assertFalse(new String(HttpResponse.body(res)).contains("<a href=\"/src\">"));
     }
 
     @Test
@@ -65,8 +66,8 @@ public class DirectoryControllerTest {
             DirectoryController handler = new DirectoryController(root, indexPath, notFoundPath);
             HttpRequest req = newHttpRequest(uri);
 
-            HttpResponse res = handler.get(req);
-            Assert.assertFalse(res.content.contains("<a href=\"/src\">"));
+            Map<String, Object> res = handler.get(req);
+            Assert.assertFalse(Arrays.toString(HttpResponse.body(res)).contains("<a href=\"/src\">"));
 
             String expected = "<a href=\"/src/..\">..</a>\r\n";
             List<String> dirs = Arrays.asList(new File(root + "/src").list());
@@ -74,7 +75,7 @@ public class DirectoryControllerTest {
             for (String f : dirs)
                 expected += "\t<a href=\"/src/" + f + "\">" + f + "</a>\r\n";
 
-            Assert.assertTrue(res.content.contains(expected));
+            Assert.assertTrue(new String(HttpResponse.body(res)).contains(expected));
         }
     }
 
@@ -85,9 +86,9 @@ public class DirectoryControllerTest {
         String[] uris = {"/..", "..", "/somewhere/over/../the/rainbow"};
         for (String uri : uris) {
             HttpRequest req = newHttpRequest(uri);
-            HttpResponse res = handler.get(req);
-            Assert.assertEquals(HttpStatusCode.Forbidden, res.statusCode);
-            Assert.assertEquals("Cannot request parent directory", res.content);
+            Map<String, Object> res = handler.get(req);
+            Assert.assertEquals(HttpStatusCode.Forbidden, res.get("status"));
+            Assert.assertArrayEquals("Cannot request parent directory".getBytes(), HttpResponse.body(res));
         }
     }
 
@@ -107,9 +108,9 @@ public class DirectoryControllerTest {
 
             for (DirectoryController controller : controllers) {
                 HttpRequest req = newHttpRequest(path);
-                HttpResponse res = controller.get(req);
-                Assert.assertEquals(HttpStatusCode.NotFound, res.statusCode);
-                Assert.assertArrayEquals(notFoundFile, res.contentBytes);
+                Map<String, Object> res = controller.get(req);
+                Assert.assertEquals(HttpStatusCode.NotFound, res.get("status"));
+                Assert.assertArrayEquals(notFoundFile, HttpResponse.body(res));
             }
         }
     }
@@ -119,8 +120,8 @@ public class DirectoryControllerTest {
         String root = System.getProperty("user.dir");
         DirectoryController handler = new DirectoryController(root, indexPath, notFoundPath);
         HttpRequest req = newHttpRequest("/README.md");
-        HttpResponse res = handler.get(req);
-        Assert.assertArrayEquals(FileHelper.readFileBytes("README.md"), res.contentBytes);
+        Map<String, Object> res = handler.get(req);
+        Assert.assertArrayEquals(FileHelper.readFileBytes("README.md"), HttpResponse.body(res));
     }
 
     @Test
@@ -129,14 +130,14 @@ public class DirectoryControllerTest {
         String root = System.getProperty("user.dir");
         DirectoryController handler = new DirectoryController(root, indexPath, notFoundPath);
         HttpRequest req = newHttpRequest(path);
-        HttpResponse res = handler.get(req);
+        Map<String, Object> res = handler.get(req);
 
-        Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
+        Assert.assertEquals(HttpStatusCode.OK, res.get("status"));
 
         File file = new File(root + path.replace("%20", " "));
         byte[] data = new byte[(int)file.length()];
         new BufferedInputStream(new FileInputStream(file)).read(data);
-        Assert.assertArrayEquals(data, res.contentBytes);
+        Assert.assertArrayEquals(data, HttpResponse.body(res));
     }
 
     @Test
@@ -151,9 +152,9 @@ public class DirectoryControllerTest {
         };
         for (DirectoryController controller : controllers) {
             HttpRequest req = newHttpRequest("/");
-            HttpResponse res = controller.get(req);
-            Assert.assertEquals(HttpStatusCode.InternalServerError, res.statusCode);
-            Assert.assertEquals("Failed to load resource", res.content);
+            Map<String, Object> res = controller.get(req);
+            Assert.assertEquals(HttpStatusCode.InternalServerError, res.get("status"));
+            Assert.assertArrayEquals("Failed to load resource".getBytes(), HttpResponse.body(res));
         }
     }
 }

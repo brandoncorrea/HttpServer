@@ -4,13 +4,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.Map;
 import java.util.function.Function;
 
 public class SocketWorker implements Runnable {
     private final Socket socket;
-    private final Function<HttpRequest, HttpResponse> router;
+    private final Function<HttpRequest, Map<String, Object>> router;
 
-    public SocketWorker(Socket socket, Function<HttpRequest, HttpResponse> router) {
+    public SocketWorker(Socket socket, Function<HttpRequest, Map<String, Object>> router) {
         this.socket = socket;
         this.router = router;
     }

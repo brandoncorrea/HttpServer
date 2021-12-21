@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class DirectoryController {
@@ -25,7 +26,7 @@ public class DirectoryController {
         notFoundPath = config.getString("NotFoundPage");
     }
 
-    public HttpResponse get(HttpRequest request) {
+    public Map<String, Object> get(HttpRequest request) {
         try {
             String uri = request.uri
                     .replaceAll("[/]+$", "")
@@ -33,28 +34,28 @@ public class DirectoryController {
             String path = root + uri;
             File file = new File(path);
             if (uri.contains(".."))
-                return new HttpResponse(HttpStatusCode.Forbidden, "Cannot request parent directory");
+                return HttpResponse.create(HttpStatusCode.Forbidden, "Cannot request parent directory");
             if (!file.exists())
-                return new HttpFileResponse(HttpStatusCode.NotFound, notFoundPath);
+                return HttpFileResponse.create(HttpStatusCode.NotFound, notFoundPath);
             if (file.isDirectory())
                 return buildDirectoryList(uri);
             return tryRequestFile(path);
         } catch (Exception ignored) {
-            return new HttpResponse(HttpStatusCode.InternalServerError, "Failed to load resource");
+            return HttpResponse.create(HttpStatusCode.InternalServerError, "Failed to load resource");
         }
     }
 
-    private HttpResponse tryRequestFile(String path) {
+    private Map<String, Object> tryRequestFile(String path) {
         try {
-            return new HttpFileResponse(path);
+            return HttpFileResponse.create(path);
         } catch (Exception ignored) {
-            return new HttpResponse(HttpStatusCode.InternalServerError, "Failed to load file.");
+            return HttpResponse.create(HttpStatusCode.InternalServerError, "Failed to load file.");
         }
     }
 
-    private HttpResponse buildDirectoryList(String uri) throws IOException {
-        HttpResponse res = new HttpResponse(HttpStatusCode.OK, buildHtmlContent(uri));
-        res.headers.put("Content-Type", "text/html");
+    private Map<String, Object> buildDirectoryList(String uri) throws IOException {
+        Map<String, Object> res = HttpResponse.create(HttpStatusCode.OK, buildHtmlContent(uri));
+        HttpResponse.headers(res).put("Content-Type", "text/html");
         return res;
     }
 

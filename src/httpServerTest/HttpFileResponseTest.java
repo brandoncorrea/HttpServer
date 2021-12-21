@@ -10,6 +10,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Map;
 
 public class HttpFileResponseTest {
 
@@ -21,19 +22,19 @@ public class HttpFileResponseTest {
         };
 
         for (String path : paths) {
-            HttpResponse res = new HttpFileResponse(HttpStatusCode.OK, path);
-            Assert.assertEquals(HttpStatusCode.OK, res.statusCode);
-            Assert.assertEquals("text/plain", res.headers.get("Content-Type"));
-            Assert.assertEquals(String.valueOf(res.contentBytes.length), res.headers.get("Content-Length"));
+            Map<String, Object> res = HttpFileResponse.create(HttpStatusCode.OK, path);
+            Assert.assertEquals(HttpStatusCode.OK, res.get("status"));
+            Assert.assertEquals("text/plain", HttpResponse.headers(res).get("Content-Type"));
+            Assert.assertEquals(String.valueOf(HttpResponse.body(res).length), HttpResponse.headers(res).get("Content-Length"));
 
             File file = new File(path);
             byte [] expected  = new byte [(int) file.length()];
             new BufferedInputStream(new FileInputStream(file)).read(expected);
-            Assert.assertArrayEquals(expected, res.contentBytes);
+            Assert.assertArrayEquals(expected, HttpResponse.body(res));
         }
 
-        HttpResponse res = new HttpFileResponse(HttpStatusCode.InternalServerError, "src/resources/public/memes/dwight.gif");
-        Assert.assertEquals(HttpStatusCode.InternalServerError, res.statusCode);
-        Assert.assertEquals("image/gif", res.headers.get("Content-Type"));
+        Map<String, Object> res = HttpFileResponse.create(HttpStatusCode.InternalServerError, "src/resources/public/memes/dwight.gif");
+        Assert.assertEquals(HttpStatusCode.InternalServerError, res.get("status"));
+        Assert.assertEquals("image/gif", HttpResponse.headers(res).get("Content-Type"));
     }
 }

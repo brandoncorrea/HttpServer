@@ -3,53 +3,52 @@ package httpServer;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class HttpResponse {
-    public final int statusCode;
-    public final String content;
-    public final byte[] contentBytes;
-    public final Map<String, String> headers;
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
+public final class HttpResponse {
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
 
-    public HttpResponse(int statusCode) {
-        this.statusCode = statusCode;
-        content = null;
-        contentBytes = new byte[0];
-        headers = new HashMap<String, String>() {{
-            put("Date", getFormattedDate());
+    public static Map<String, String> headers(Map<String, Object> response) {
+        return (Map<String, String>)response.get("headers");
+    }
+
+    public static byte[] body(Map<String, Object> response) {
+        if (response.containsKey("body"))
+            return (byte[])response.get("body");
+        return new byte[0];
+    }
+
+    public static Map<String, Object> create(int status) {
+        return new HashMap<String, Object>() {{
+            put("status", status);
+            put("headers", new HashMap<String, String>() {{
+                put("Date", dateFormat.format(new Date()));
+            }});
         }};
     }
 
-    public HttpResponse(int statusCode, String content) {
-        this.statusCode = statusCode;
-        this.content = content;
-        contentBytes = content.getBytes();
-        headers = new HashMap<String, String>() {{
-            put("Date", getFormattedDate());
-            put("Content-Type", "text/plain");
-            put("Content-Length", String.valueOf(contentBytes.length));
-        }};
+    public static Map<String, Object> create(int status, String content) {
+        Map<String, Object> res = create(status, content.getBytes());
+        headers(res).put("Content-Type", "text/plain");
+        return res;
     }
 
-    public HttpResponse(int statusCode, byte[] bytes) {
-        this.statusCode = statusCode;
-        this.content = null;
-        contentBytes = new byte[bytes.length];
-        System.arraycopy(bytes, 0, contentBytes, 0, bytes.length);
-        this.headers = new HashMap<String, String>(){{
-            put("Content-Length", String.valueOf(contentBytes.length));
-            put("Date", getFormattedDate());
-        }};
+    public static Map<String, Object> create(int status, byte[] body) {
+        Map<String, Object> res = create(status);
+        headers(res).put("Content-Length", String.valueOf(body.length));
+        byte[] bytes = new byte[body.length];
+        System.arraycopy(body, 0, bytes, 0, bytes.length);
+        res.put("body", bytes);
+        return res;
     }
 
-    public HttpResponse(int statusCode, Map<String, String> headers) {
-        this(statusCode);
-        this.headers.putAll(headers);
+    public static Map<String, Object> create(int statusCode, Map<String, String> headers) {
+        Map<String, Object> res = create(statusCode);
+        headers(res).putAll(headers);
+        return res;
     }
 
-    public HttpResponse(int statusCode, Map<String, String> headers, String content) {
-        this(statusCode, content);
-        this.headers.putAll(headers);
+    public static Map<String, Object> create(int statusCode, Map<String, String> headers, String content) {
+        Map<String, Object> res = create(statusCode, content);
+        headers(res).putAll(headers);
+        return res;
     }
-
-    private String getFormattedDate() { return dateFormat.format(new Date()); }
 }

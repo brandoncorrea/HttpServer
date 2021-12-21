@@ -1,15 +1,17 @@
 package httpServer;
 
 import java.io.IOException;
+import java.util.Map;
 
-public class HttpFileResponse extends HttpResponse {
+public final class HttpFileResponse {
 
-    public HttpFileResponse(String path) throws IOException {
-        this(HttpStatusCode.OK, path);
+    public static Map<String, Object> create(String path) throws IOException {
+        return create(HttpStatusCode.OK, path);
     }
 
-    public HttpFileResponse(int statusCode, String path) throws IOException {
-        super(statusCode, FileHelper.readFileBytes(path));
-        headers.put("Content-Type", FileHelper.getContentType(path));
+    public static Map<String, Object> create(int status, String path) throws IOException {
+        Map<String, Object> res = HttpResponse.create(status, FileHelper.readFileBytes(path));
+        HttpResponse.headers(res).put("Content-Type", FileHelper.getContentType(path));
+        return res;
     }
 }
